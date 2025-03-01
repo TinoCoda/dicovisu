@@ -10,7 +10,7 @@ export const getWords = async (req, res) => {
     }
 };
 
-export const createWord = async (req, res) => {
+export const addWord = async (req, res) => {
     const word = req.body;
     if(!word.word || !word.meaning || !word.language){
         res.status(400).json({ succes:false,message: "Please fill all required fields" });
