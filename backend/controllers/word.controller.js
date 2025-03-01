@@ -25,13 +25,24 @@ export const addWord = async (req, res) => {
 };
 
 export const updateWord = async (req, res) => {
-    const { id: _id } = req.params;
-    const word = req.body;
-    if(!mongoose.Types.ObjectId.isValid(_id)){
-        return res.status(404).json({ sucess:true,message: "No word with that id" });
+    try{
+        const { id: _id } = req.params;
+        const word = req.body;
+        if(!id){
+            return res.status(400).json({success:false,message:'Invalid word id'})
+
+        }
+        if(!mongoose.Types.ObjectId.isValid(_id)){
+            return res.status(404).json({ sucess:true,message: "No word with that id" });
+        }
+        const updatedWord = await Word.findByIdAndUpdate(_id,word, {new: true});
+        res.status(200).json({success:true,data:updatedWord});
+
+    }catch(error){
+        res.status(500).json({success:false,message:'Server error while updating the word'})
+
     }
-    const updatedWord = await Word.findByIdAndUpdate(id,word, {new: true});
-    res.json(updatedWord);
+
 
 };
 
