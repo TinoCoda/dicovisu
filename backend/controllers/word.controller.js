@@ -4,7 +4,8 @@ import Word from "../models/word.model.js";
 export const getWords = async (req, res) => {
     try {
         const words = await Word.find();
-        res.status(200).json(words);
+        const size=words.length;
+        res.status(200).json({size:size,data:words});
     } catch (error) {
         res.status(500).json({ succes: false,message: error.message });
     }
