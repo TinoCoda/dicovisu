@@ -52,7 +52,7 @@ export const deleteWord = async (req, res) => {
         if(!mongoose.Types.ObjectId.isValid(id)){
             return res.status(404).json({ sucess:false,message: "No word with that id" });
         }
-        await Word.findByIdAndRemove(id);
+        await Word.findByIdAndDelete(id);
         res.status(200).json({ success: true, message: "Word deleted successfully" });
 
     }catch(error){
