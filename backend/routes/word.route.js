@@ -3,9 +3,11 @@ import {getWords, addWord, deleteWord, updateWord} from '../controllers/word.con
 
 const router = express.Router();
 
-router.get('/', getWords);
+
 router.post('/', addWord);
-router.delete('/:id', deleteWord);
+router.get('/', getWords);
 router.put('/:id', updateWord);
+router.delete('/:id', deleteWord);
+
 
 export default router;
