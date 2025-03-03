@@ -1,28 +1,30 @@
 import { useState } from 'react'
-import { Box, VStack } from '@chakra-ui/react'
+import { Box, useColorModeValue, VStack } from '@chakra-ui/react'
+import {Route, Routes} from "react-router-dom"
+
+
+
+import Navbar from './components/NavBar'
 
 import HomePage from './pages/HomePage'
-import SearchBar from './components/SearchBar'
+import AddNewEntry from './pages/AddNewEntry'
+
 
 
 
 function App() {
 
-  const handleSearch = (query) => {
-    console.log("Searching for:", query);
-    // Call your API or filter logic here
-  };
 
 
   return (
     <>
-    <Box p={8}>
+    <Box bg={useColorModeValue("gray.200","gray.700")} p={8} h={"100vh"}>
+      <Navbar/>
+      <Routes>
+        <Route path='/' element={<HomePage/>} />
+        <Route path='/add' element={<AddNewEntry/>} />
+      </Routes>
 
-      <VStack>
-        <HomePage/>
-        <SearchBar onSearch={handleSearch} />
-
-      </VStack>
 
 
     </Box>
