@@ -1,12 +1,63 @@
-import { get } from 'mongoose'
+
 import {create} from 'zustand'
 
 export const useWordStore =create((set) => ({
     words: [],
     setWords: (words) => set({words}),
-    addWord: (word) => set((state) => ({words: [...state.words, word]})),
-    getWords: () => get('/api/words').then((data) => set({words: data})),
-    deleteWord: (word) => set((state) => ({words: state.words.filter((w) => w !== word)})),
-    updateWord: (word) => set((state) => ({words: state.words.map((w) => (w === word ? word : w)})),
-    searchWord: (query) => set((state) => ({words: state.words.filter((w) => w.includes(query)})),
+    addWord: async (word) => {
+        if(!word.word || !word.meaning || !word.language){
+            res.status(400).json({ succes:false,message: "Please fill all required fields" });
+        }
+        const response = await fetch('/api/words', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(word)
+        })
+        const data = await response.json()
+        set((state) => ({words: [...state.words, data.data]}))
+        return {success:true,message:'Word added successfully'};
+    },
+    fetchWords: async () => {
+        const response = await fetch('/api/words')
+        const data = await response.json()
+        set({words: data.data})
+    },
+    deleteWord: async (wid) =>{
+        const response = await fetch(`/api/words/${wid}`,
+             {method: 'DELETE'
+
+             })
+        const data = await response.json()
+
+        if(!data.success){
+            
+            return {success:false,message:data.message};
+        }
+
+
+        set((state) => ({words: state.words.filter((w) => w ._id!== wid)}))
+    } ,
+    updateWord: async (wid, updatedWord) => {
+        const response = await fetch(`/api/words/${wid}`,
+        { method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedWord)
+        });
+
+        const data = await response.json();
+        if(!data.success) return {success:false,message:data.message};
+
+        set((state) => ({words: state.words.map((w) => (w._id === wid ? data.data : w))}))
+    },
+
+    searchWord: async (query) => {
+        const response = await fetch(`/api/words/search?word=${query}`);
+        const data = await response.json();
+        if(!data.success) return {success:false,message:data.message};
+        set({words: data.data});
+    }
 }));

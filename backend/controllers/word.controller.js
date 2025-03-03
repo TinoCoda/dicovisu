@@ -19,7 +19,7 @@ export const addWord = async (req, res) => {
     const newWord = new Word(word);
     try {
         await newWord.save();
-        res.status(201).json(newWord);
+        res.status(201).json({succes:true,data:newWord});
     } catch (error) {
         res.status(409).json({ message: error.message });
     }
@@ -68,7 +68,7 @@ export const searchWordStart = async (req, res) => {
     const { word } = req.query;
     try {
         const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
-        res.status(200).json(words);
+        res.status(200).json({sucess:true, data:words});
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
