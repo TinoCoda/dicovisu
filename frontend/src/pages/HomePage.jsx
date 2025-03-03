@@ -12,7 +12,7 @@ import SearchResult from '../components/SearchResult';
 
 const HomePage = () => {
     console.log("load HomePage");
-    const { fetchWords, words, searchWord } = useWordStore();
+    const { fetchWords, words, searchWord,setSelectedWord } = useWordStore();
     const [searchResults, setSearchResults] = useState([]); 
     
     useEffect(() => {
@@ -36,6 +36,8 @@ const HomePage = () => {
     const handleSelect= (word) => {
         console.log("Selected word:", word);
         // Call your API or filter logic here
+        setSelectedWord(word);
+
       };
     
   return (

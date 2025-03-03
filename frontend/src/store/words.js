@@ -68,5 +68,7 @@ export const useWordStore =create((set) => ({
         set({words: data.data});
         //console.log(words);
         return {success:true,message:'Word found',data:data.data};
-    }
+    },
+    selectedWord: null,
+    setSelectedWord: (selectedWord) => set({selectedWord})
 }));
