@@ -23,6 +23,8 @@ export const useWordStore =create((set) => ({
         const response = await fetch('/api/words')
         const data = await response.json()
         set({words: data.data})
+        console.log("fetchWords called");
+        console.log(data.data);
     },
     deleteWord: async (wid) =>{
         const response = await fetch(`/api/words/${wid}`,
@@ -56,8 +58,15 @@ export const useWordStore =create((set) => ({
 
     searchWord: async (query) => {
         const response = await fetch(`/api/words/search?word=${query}`);
+        console.log("searchWord called");
+
         const data = await response.json();
+        console.log("data from searchWord");
+        console.log(data.success);
+        console.log(data);
         if(!data.success) return {success:false,message:data.message};
         set({words: data.data});
+        //console.log(words);
+        return {success:true,message:'Word found',data:data.data};
     }
 }));

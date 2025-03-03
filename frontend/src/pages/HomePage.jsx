@@ -12,7 +12,9 @@ import SearchResult from '../components/SearchResult';
 
 const HomePage = () => {
     console.log("load HomePage");
-    const { fetchWords, words } = useWordStore();
+    const { fetchWords, words, searchWord } = useWordStore();
+    const [searchResults, setSearchResults] = useState([]); 
+    
     useEffect(() => {
         fetchWords();
     }, [fetchWords]);
@@ -20,14 +22,16 @@ const HomePage = () => {
     
 
 
-    const handleSearch = (query) => {
-        console.log("Searching for:", query);
-        // Call your API or filter logic here
-        const { searchWord,words } = useWordStore();
-       useEffect(() => {
-        searchWord(query);
-      }, [searchWord]);
-        };
+    const handleSearch = async (query) => {
+      console.log("Searching for:", query);
+      const responseObject = await searchWord(query); 
+      console.log("response:", responseObject);
+      const result = responseObject.data;
+      console.log("success:", responseObject.success);
+      console.log("message:", responseObject.message);
+      
+      setSearchResults(result); 
+  };
 
     const handleSelect= (word) => {
         console.log("Selected word:", word);

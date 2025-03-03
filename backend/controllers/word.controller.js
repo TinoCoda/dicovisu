@@ -68,9 +68,11 @@ export const searchWordStart = async (req, res) => {
     const { word } = req.query;
     try {
         const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
-        res.status(200).json({sucess:true, data:words});
+        res.status(200).json({success:true, data:words});
+        console.log(words);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+        console.error(`Error while searching word: ${error.message}`);
     }
 };
 
