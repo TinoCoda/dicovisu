@@ -54,7 +54,8 @@ function AddNewEntry() {
     <>
     <div>AddNewEntry</div>
     <Container maxW={"container.sm"}>
-      <VStack spacing={8}
+      <VStack
+      spacing={8}
       >
         <Heading as="h1" size="2xl" textAlign={"center"} mb={8} >
             Add a New Word
@@ -64,33 +65,33 @@ function AddNewEntry() {
                  <VStack spacing={4}>
                     <Input 
                         placeholder="Word"
-                        name="name"
+                        name="word"
                         value={newWord.word}
-                        onChange={(e) => setNewWord({...newWord, name: e.target.value})}
+                        onChange={(e) => setNewWord({...newWord, word: e.target.value})}
                     />
                     <Input 
                         placeholder="Meaning"
                         name="meaning"
                         value={newWord.meaning}
-                        onChange={(e) => setNewWord({...newWord, price: e.target.value})}
+                        onChange={(e) => setNewWord({...newWord, meaning: e.target.value})}
                     />
                     <Input 
                         placeholder="Language"
                         name="language"
                         value={newWord.language}
-                        onChange={(e) => setNewWord({...newWord, image: e.target.value})}
+                        onChange={(e) => setNewWord({...newWord, language: e.target.value})}
                     />
                     <Input 
                         placeholder="Description"
                         name="description"
                         value={newWord.description}
-                        onChange={(e) => setNewWord({...newWord, image: e.target.value})}
+                        onChange={(e) => setNewWord({...newWord, description: e.target.value})}
                     />
                     <Input 
                         placeholder="Example"
                         name="example"
                         value={newWord.example}
-                        onChange={(e) => setNewWord({...newWord, image: e.target.value})} 
+                        onChange={(e) => setNewWord({...newWord, example: e.target.value})} 
                     />
                     
                     <Button

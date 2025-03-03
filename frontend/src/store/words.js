@@ -8,8 +8,8 @@ export const useWordStore =create((set) => ({
         if(!word.word || !word.meaning || !word.language){
             return ({ succes:false,message: "Please fill all required fields" });
         }
-        const response = await fetch('/api/words', {
-            method: 'POST',
+        const response = await fetch("/api/words", {
+            method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -22,7 +22,11 @@ export const useWordStore =create((set) => ({
     fetchWords: async () => {
         const response = await fetch('/api/words')
         const data = await response.json()
-        set({words: data.data})
+        // can you sort data.data alphabetically here?
+        // Sort data.data alphabetically by the 'word' property
+        const pData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+
+        set({words: pData})
         console.log("fetchWords called");
         console.log(data.data);
     },
@@ -65,7 +69,9 @@ export const useWordStore =create((set) => ({
         console.log(data.success);
         console.log(data);
         if(!data.success) return {success:false,message:data.message};
-        set({words: data.data});
+        const sortedData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+
+        set({words: sortedData});
         //console.log(words);
         return {success:true,message:'Word found',data:data.data};
     },

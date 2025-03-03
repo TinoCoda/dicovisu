@@ -20,7 +20,7 @@ const SearchResult = ({ results, onSelect }) => {
       <List spacing={2}>
         {results.map((result) => (
           <ListItem
-            key={result.id}
+            key={result?result.id:""}
             p={2}
             borderRadius="md"
             _hover={{ bg: "gray.100", cursor: "pointer" }}
@@ -28,7 +28,7 @@ const SearchResult = ({ results, onSelect }) => {
           >
             <Link to={`/details`}>
               <Text fontSize="md" fontWeight={"medium"} color={"black"}>
-                {result.word}
+                {result?result.word:""}
               </Text>
             </Link>
           </ListItem>
