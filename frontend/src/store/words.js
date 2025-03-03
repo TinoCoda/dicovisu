@@ -6,7 +6,7 @@ export const useWordStore =create((set) => ({
     setWords: (words) => set({words}),
     addWord: async (word) => {
         if(!word.word || !word.meaning || !word.language){
-            res.status(400).json({ succes:false,message: "Please fill all required fields" });
+            return ({ succes:false,message: "Please fill all required fields" });
         }
         const response = await fetch('/api/words', {
             method: 'POST',
