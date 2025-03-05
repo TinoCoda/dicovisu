@@ -6,7 +6,7 @@ function WordContent({selectedWord}) {
   return (
     <>
     <VStack>
-    <Text color="black" fontWeight="bold" fontSize={"md"}>
+    <Text fontWeight="bold" fontSize={"md"}>
         {selectedWord.meaning}
     </Text>
     <Text>
