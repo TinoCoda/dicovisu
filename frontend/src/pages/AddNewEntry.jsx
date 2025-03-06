@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
 
-import { Box, Container, Text, VStack ,Heading, useColorModeValue, Input, Button, useToast} from "@chakra-ui/react"
+import { Box, Container, Text, VStack ,Heading, useColorModeValue, Input, Button, useToast,Textarea} from "@chakra-ui/react"
 import { useWordStore } from '../store/words'
 
 function AddNewEntry() {
@@ -81,13 +81,13 @@ function AddNewEntry() {
                         value={newWord.language}
                         onChange={(e) => setNewWord({...newWord, language: e.target.value})}
                     />
-                    <Input 
+                    <Textarea
                         placeholder="Description"
                         name="description"
                         value={newWord.description}
                         onChange={(e) => setNewWord({...newWord, description: e.target.value})}
                     />
-                    <Input 
+                    <Textarea
                         placeholder="Example"
                         name="example"
                         value={newWord.example}
