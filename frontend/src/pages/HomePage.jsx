@@ -12,12 +12,13 @@ import SearchResult from '../components/SearchResult';
 
 const HomePage = () => {
     console.log("load HomePage");
-    const { fetchWords, words, searchWord,setSelectedWord } = useWordStore();
+    const { fetchWords,addOfflineWords, words, searchWord,setSelectedWord } = useWordStore();
     const [searchResults, setSearchResults] = useState([]); 
     
     useEffect(() => {
         fetchWords();
-    }, [fetchWords]);
+        addOfflineWords();
+    }, [fetchWords], [addOfflineWords]);
 
     
 

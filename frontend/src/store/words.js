@@ -42,20 +42,30 @@ export const useWordStore =create((set) => ({
     },
     addOfflineWords: async () => {
         const offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
-        if(offlineNewWords.length===0) return;
-        for(const word of offlineNewWords){
-            const response = await fetch("/api/words", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(word)
-            })
-            const data = await response.json()
-            set((state) => ({words: [...state.words, data.data]}))
+        try{
+            if(offlineNewWords.length===0) return;
+            for(const word of offlineNewWords){
+                const response = await fetch("/api/words", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(word)
+                })
+                const data = await response.json()
+                set((state) => ({words: [...state.words, data.data]}))
+    
+            }
+            localStorage.setItem('newWords',JSON.stringify([]));
+            return {success:true,message:'Offline words added successfully'};
+
+        }catch(e){
+            console.log(`Run into an error: ${e.message}`);
+            localStorage.setItem('newWords',JSON.stringify([]));
+            return {success:false,message:e.message};
 
         }
-        return {success:true,message:'Offline words added successfully'};
+
     },
     fetchWords: async () => {
         try{
@@ -71,7 +81,7 @@ export const useWordStore =create((set) => ({
             
             console.log("fetchWords called");
             console.log(data.data);
-            await useWordStore.addOfflineWords();
+           
 
 
         }catch(e){
