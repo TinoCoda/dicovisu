@@ -15,6 +15,8 @@ import DetailPage from './pages/DetailPage'
 
 
 
+
+
 function App() {
 
 
@@ -27,6 +29,7 @@ function App() {
         <Route path='/' element={<HomePage/>} />
         <Route path='/add' element={<AddNewEntry/>} />
         <Route path='/details' element={<DetailPage/>} />
+        
       </Routes>
 
 
@@ -38,4 +41,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

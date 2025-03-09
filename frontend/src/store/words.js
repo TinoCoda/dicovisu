@@ -5,30 +5,82 @@ export const useWordStore =create((set) => ({
     words: [],
     setWords: (words) => set({words}),
     addWord: async (word) => {
-        if(!word.word || !word.meaning || !word.language){
-            return ({ succes:false,message: "Please fill all required fields" });
+        try{
+            if(!word.word || !word.meaning || !word.language){
+                return ({ succes:false,message: "Please fill all required fields" });
+            }
+            const response = await fetch("/api/words", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(word)
+            })
+            const data = await response.json()
+            set((state) => ({words: [...state.words, data.data]}))
+            return {success:true,message:'Word added successfully'};
+
+        }catch(error){
+            var offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
+            const offlineNewWordsSet=new Set(offlineNewWords.map((w)=>w.word));
+            offlineNewWordsSet.add(word);
+            offlineNewWords=[...offlineNewWordsSet].map((w)=>({
+                                                                word:w.word,
+                                                                meaning:w.meaning,
+                                                                language:w.language,
+                                                                description:w.description,
+                                                                example:w.example
+                                                            }));
+           
+            localStorage.setItem('newWords',JSON.stringify(offlineNewWords));
+
+            console.log(`connection to database lost, impossible to add a new word:\n ${error.message}`);
+            return ({succes:false, message:`connection to database lost, impossible to add a new word:\n ${error.message}`});
+
         }
-        const response = await fetch("/api/words", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(word)
-        })
-        const data = await response.json()
-        set((state) => ({words: [...state.words, data.data]}))
-        return {success:true,message:'Word added successfully'};
+
+    },
+    addOfflineWords: async () => {
+        const offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
+        if(offlineNewWords.length===0) return;
+        for(const word of offlineNewWords){
+            const response = await fetch("/api/words", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(word)
+            })
+            const data = await response.json()
+            set((state) => ({words: [...state.words, data.data]}))
+
+        }
+        return {success:true,message:'Offline words added successfully'};
     },
     fetchWords: async () => {
-        const response = await fetch('/api/words')
-        const data = await response.json()
-        // can you sort data.data alphabetically here?
-        // Sort data.data alphabetically by the 'word' property
-        const pData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+        try{
+            const response = await fetch('/api/words')
+            const data = await response.json()
+            console.log(data);
+            // can you sort data.data alphabetically here?
+            // Sort data.data alphabetically by the 'word' property
+            const pData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+            localStorage.setItem('words',JSON.stringify(pData));
+    
+            set({words: pData})
+            
+            console.log("fetchWords called");
+            console.log(data.data);
+            await useWordStore.addOfflineWords();
 
-        set({words: pData})
-        console.log("fetchWords called");
-        console.log(data.data);
+
+        }catch(e){
+            console.log(`Run into an error: ${e.message}`);
+            const localWords=JSON.parse(localStorage.getItem('words')) ||[];
+            set({words:localWords});
+
+        }
+
     },
     deleteWord: async (wid) =>{
         const response = await fetch(`/api/words/${wid}`,
@@ -61,19 +113,32 @@ export const useWordStore =create((set) => ({
     },
 
     searchWord: async (query) => {
-        const response = await fetch(`/api/words/search?word=${query}`);
-        console.log("searchWord called");
+        try{
+            const response = await fetch(`/api/words/search?word=${query}`);
+            console.log("searchWord called");
+    
+            const data = await response.json();
+            console.log("data from searchWord");
+            console.log(data.success);
+            console.log(data);
+            if(!data.success) return {success:false,message:data.message};
+            const sortedData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+    
+            set({words: sortedData});
+            //console.log(words);
+            return {success:true,message:'Word found',data:data.data};
 
-        const data = await response.json();
-        console.log("data from searchWord");
-        console.log(data.success);
-        console.log(data);
-        if(!data.success) return {success:false,message:data.message};
-        const sortedData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+        }catch(error){
+            const regexQuery=`^${query}`
+            const localWords=JSON.parse(localStorage.getItem('words')) ||[];
+            const filteredWords=localWords.filter((w)=>w.word.match(new RegExp(regexQuery,'i')));
+            
+            set({words:filteredWords});
+            console.log(`connection to database is lost: ${error.message}`);
+            console.log(query);
 
-        set({words: sortedData});
-        //console.log(words);
-        return {success:true,message:'Word found',data:data.data};
+        }
+
     },
     selectedWord: JSON.parse(localStorage.getItem('selectedWord')) || null,
     setSelectedWord: (selectedWord) => {

@@ -14,7 +14,8 @@ const SearchResult = ({ results, onSelect }) => {
       boxShadow="md"
       borderRadius="md"
       p={2}
-      maxH="300px"
+      maxH="400px"
+      maxW={{ base: "500px", md: "800px" }}
       overflowY="auto"
     >
       <List spacing={2}>

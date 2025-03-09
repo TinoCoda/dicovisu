@@ -20,16 +20,18 @@ function AddNewEntry() {
   const handleAddWord = async () => {
 
     const { success, message } = await addWord(newWord);
-    setNewWord({
-      word: "",
-      meaning: "",
-      language:"",
-      description: "",
-      example: "",
-    });
-    console.log(success, message);
+
 
     if(success){
+      setNewWord({
+        word: "",
+        meaning: "",
+        language:"",
+        description: "",
+        example: "",
+      });
+      console.log(success, message);
+
       toast({
         title: "Word added successfully",
         status: "success",
