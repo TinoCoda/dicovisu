@@ -1,13 +1,12 @@
-import { create } from "zustand";
+import { create } from 'zustand'
 
 export const useLanguageStore = create((set) => ({
-
     languages: [],
     setLanguages: (languages) => set({ languages }),
     addLanguage: async (language) => {
         try {
             if (!language.name || !language.code) {
-                return ({ success: false, message: "Please fill all required fields" });
+                return { success: false, message: "Please fill all required fields" };
             }
             const response = await fetch("/api/languages", {
                 method: "POST",
@@ -26,7 +25,9 @@ export const useLanguageStore = create((set) => ({
             offlineNewLanguagesSet.add(language);
             offlineNewLanguages = [...offlineNewLanguagesSet].map((l) => ({
                 name: l.name,
-                code: l.code
+                code: l.code,
+                description: l.description,
+                countries: l.countries
             }));
 
             localStorage.setItem('newLanguages', JSON.stringify(offlineNewLanguages));
@@ -50,26 +51,24 @@ export const useLanguageStore = create((set) => ({
                     body: JSON.stringify(language)
                 })
                 const data = await response.json()
-                set((state) => ({ languages: [...state.languages, data.data] })
-
-                )
+                set((state) => ({ languages: [...state.languages, data.data] }))
             }
             localStorage.setItem('newLanguages', JSON.stringify([]));
             return { success: true, message: 'Offline languages added successfully' };
         } catch (error) {
             console.log(`connection to database lost, impossible to add a new language:\n ${error.message}`);
-            return ({ success: false, message: `connection to database lost, impossible to add a new language:\n ${error.message}` });
-        }},
+            return { success: false, message: `connection to database lost, impossible to add a new language:\n ${error.message}` };
+        }
+    },
     fetchLanguages: async () => {
         try {
-            const response = await fetch("/api/languages");
-            const data = await response.json();
-            set({ languages: data.data });
+            const response = await fetch('/api/languages')
+            const data = await response.json()
+            set({ languages: data.data })
         } catch (error) {
             console.log(`connection to database lost, impossible to fetch languages:\n ${error.message}`);
         }
     },
-
     updateLanguage: async (language) => {
         try {
             const response = await fetch(`/api/languages/${language._id}`, {
@@ -80,13 +79,27 @@ export const useLanguageStore = create((set) => ({
                 body: JSON.stringify(language)
             })
             const data = await response.json()
-            set((state) => ({ languages: state.languages.map((l) => l._id === data.data._id ? data.data : l) }))
+            set((state) => ({
+                languages: state.languages.map((l) => l._id === language._id ? data.data : l)
+            }))
             return { success: true, message: 'Language updated successfully' };
-
         } catch (error) {
-            console.log(`Impossible to update a language:\n ${error.message}`);
-            return ({ success: false, message: `Impossible to update a language:\n ${error.message}` });
+            console.log(`connection to database lost, impossible to update language:\n ${error.message}`);
+            return { success: false, message: `connection to database lost, impossible to update language:\n ${error.message}` };
         }
     },
-    
+    fetchLanguageById: async (id) => {
+        try {
+            console.log(id);
+            const response = await fetch(`/api/languages`)
+            const data = await response.json()
+            const language = data.data.find((l) => l._id === id)
+            console.log(language);
+            return { success: true, data: language }
+           
+        } catch (error) {
+            console.log(`Impossible to fetch language:\n ${error.message}`);
+            return { success: false, message: `Impossible to fetch language:\n ${error.message}` };
+        }
+    },
 }));

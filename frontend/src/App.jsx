@@ -10,6 +10,7 @@ import Navbar from './components/NavBar'
 import HomePage from './pages/HomePage'
 import AddNewEntry from './pages/AddNewEntry'
 import DetailPage from './pages/DetailPage'
+import AddNewLANG from './pages/AddNewLANG'
 
 
 
@@ -29,6 +30,7 @@ function App() {
         <Route path='/' element={<HomePage/>} />
         <Route path='/add' element={<AddNewEntry/>} />
         <Route path='/details' element={<DetailPage/>} />
+        <Route path='/languages' element={<AddNewLANG/>} />
         
       </Routes>
 

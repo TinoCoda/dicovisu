@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { CiSquarePlus } from "react-icons/ci";
 import { IoMoon } from "react-icons/io5";
 import { LuSun } from "react-icons/lu";
+import { DiAptana } from "react-icons/di";
 
 
 const Navbar = () => {
@@ -39,6 +40,11 @@ const Navbar = () => {
                     <Button onClick={toggleColorMode}>
                         {colorMode === "light" ? <LuSun fontSize={20} /> : <IoMoon fontSize={20} />}
                     </Button>
+                    <Link to={"/languages"}>
+                        <Button>
+                            <DiAptana fontSize={20} />
+                        </Button>
+                    </Link>
                    
                 </HStack>
            
