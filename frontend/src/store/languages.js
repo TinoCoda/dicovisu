@@ -64,7 +64,9 @@ export const useLanguageStore = create((set) => ({
         try {
             const response = await fetch('/api/languages')
             const data = await response.json()
-            set({ languages: data.data })
+            const sortedLanguages = data.data.sort((a, b) => a.name.localeCompare(b.name))
+            set({ languages: sortedLanguages })
+            
         } catch (error) {
             console.log(`connection to database lost, impossible to fetch languages:\n ${error.message}`);
         }
