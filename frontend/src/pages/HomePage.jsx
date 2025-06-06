@@ -1,58 +1,85 @@
-import React, { useEffect } from 'react'
-import { useState } from 'react';
-import { VStack } from '@chakra-ui/react';
+import React, { useEffect, useState } from 'react';
+import { VStack, Select as ChakraSelect } from '@chakra-ui/react';
 
 import { useWordStore } from '../store/words';
+import { useLanguageStore } from '../store/languages';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
-
-
-
+import { set } from 'mongoose';
 
 const HomePage = () => {
-    console.log("load HomePage");
-    const { fetchWords,addOfflineWords, words, searchWord,setSelectedWord } = useWordStore();
-    const [searchResults, setSearchResults] = useState([]); 
-    
-    useEffect(() => {
-        fetchWords();
-        addOfflineWords();
-    }, [fetchWords], [addOfflineWords]);
+  console.log("load HomePage");
+  const { fetchWords, addOfflineWords, words, searchWord, setSelectedWord,
+          wrappedWords, setWrappedWords, wrappedSearchResults, setWrappedSearchResults
+   } = useWordStore();
+  const { languages, fetchLanguages } = useLanguageStore();
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState("");
 
-    
+ 
 
+  useEffect(() => {
+    fetchWords();
+    addOfflineWords();
+    fetchLanguages(); // Fetch available languages
+    //setWrappedWords(words);
+    //setWrappedSearchResults(words);
+  }, [fetchWords, addOfflineWords, fetchLanguages]);
 
-    const handleSearch = async (query) => {
-      console.log("Searching for:", query);
-      const responseObject = await searchWord(query); 
-      console.log("response:", responseObject);
-      const result = responseObject.data;
-      console.log("success:", responseObject.success);
-      console.log("message:", responseObject.message);
-      
-      setSearchResults(result); 
+  const handleSearch = async (query) => {
+    console.log("Searching for:", query);
+    const responseObject = await searchWord(query, selectedLanguage); // Pass selected language code
+    console.log("response:", responseObject);
+    const result = responseObject.data;
+    console.log("success:", responseObject.success);
+    console.log("message:", responseObject.message);
+
+    setSearchResults(result);
+    //setWrappedSearchResults(result);
   };
 
-    const handleSelect= (word) => {
-        console.log("Selected word:", word);
-        // Call your API or filter logic here
-        setSelectedWord(word);
+  const handleSelect = (word) => {
+    console.log("Selected word:", word);
+    setSelectedWord(word);
+  };
 
-      };
-    
+  const handleLanguageChange = (e) => {
+    const languageCode = e.target.value;
+    setSelectedLanguage(languageCode);
+    console.log("Selected language code:", languageCode);
+
+    const filteredWords = words.filter((word) => word.language === languageCode);
+    //setWrappedWords(filteredWords);
+    const filteredSearchResults = searchResults.filter((word) => word.language === languageCode);
+    //setWrappedSearchResults(filteredSearchResults);
+  };
+
   return (
     <>
+      <VStack spacing={4}>
+        {/* Language Filter Dropdown */}
+        <ChakraSelect
+          placeholder="Select Language"
+          onChange={handleLanguageChange}
+          value={selectedLanguage}
+          width={"12%"}
+        >
+          {languages.map((language) => (
+            <option key={language.code} value={language.code}>
+              {language.name}
+            </option>
+          ))}
+        </ChakraSelect>
 
-    <VStack>
-    
-    <SearchBar onSearch={handleSearch} />
-    <SearchResult results={words} onSelect={handleSelect} />
+        {/* Search Bar */}
+        <SearchBar onSearch={handleSearch} />
 
-    </VStack>
+        {/* Search Results */}
+        <SearchResult results={searchResults.length > 0 ? searchResults : words} onSelect={handleSelect} />
+      </VStack>
     </>
+  );
+};
 
-  )
-}
-
-export default HomePage
+export default HomePage;

@@ -154,5 +154,18 @@ export const useWordStore =create((set) => ({
     setSelectedWord: (selectedWord) => {
         localStorage.setItem('selectedWord', JSON.stringify(selectedWord))
         set({selectedWord})
-    }
+    },
+
+    wrappedWords: JSON.parse(localStorage.getItem('wrappedWords')) || [],
+    setWrappedWords: (wrappedWords) => {
+        localStorage.setItem('wrappedWords', JSON.stringify(wrappedWords))
+        set({wrappedWords})
+    },
+    wrappedSearchResults: JSON.parse(localStorage.getItem('wrappedSearchResults')) || [],
+    setWrappedSearchResults: (wrappedSearchResults) => {
+        localStorage.setItem('wrappedSearchResults', JSON.stringify(wrappedSearchResults))
+        set({wrappedSearchResults})
+    },
+
+
 }));
