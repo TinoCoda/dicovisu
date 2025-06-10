@@ -20,3 +20,8 @@
 20250610	20:02:27	bfe3d587-f031-48d7-9fe4-0fc9d69ae170	POST	/api/auth/login	undefined
 20250610	20:02:37	3ce017b2-8231-4773-8272-683d79c52e14	GET	/auth/refresh	undefined
 20250610	20:02:56	2ef58766-a2c6-4cc4-bf4a-e5174a9fe0e3	GET	/api/auth/refresh	undefined
+20250610	22:53:26	bd984e62-83ca-429e-ae2b-08c290f63073	POST	/api/auth/logout	undefined
+20250610	22:53:32	7b446d2d-2a1b-4c93-b79a-7d86c9dfe928	POST	/api/auth/login	undefined
+20250610	22:53:36	bb78f6c3-fcfa-4f0a-a779-6506da2756c7	GET	/api/auth/refresh	undefined
+20250610	22:53:42	a0004974-9e1f-4619-a31b-c700be0c8290	GET	/api/auth/refresh	undefined
+20250610	22:53:48	60d622d9-065e-42a6-a4cc-bfc85ab1241e	POST	/api/auth/logout	undefined
