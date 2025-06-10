@@ -1,23 +1,16 @@
-import express from 'express';
-import {
-    registerUser,
-    loginUser,
-    refreshToken,
-    logoutUser
-} from '../controllers/auth.controller.js';
 
-const router = express.Router();
+import express from 'express'
+const router = express.Router()
+import authController from '../controllers/auth.controller.js'
+import loginLimiter from '../middleware/loginLimiter.js'
 
-// POST /api/auth/register
-router.post('/register', registerUser);
+router.route('/login')
+    .post( authController.login)// loginLimiter, authController.login)
 
-// POST /api/auth/login
-router.post('/login', loginUser);
+router.route('/refresh')
+    .get(authController.refresh)
 
-// POST /api/auth/refresh
-router.post('/refresh', refreshToken);
+router.route('/logout')
+    .post(authController.logout)
 
-// POST /api/auth/logout
-router.post('/logout', logoutUser);
-
-export default router;
+export default router

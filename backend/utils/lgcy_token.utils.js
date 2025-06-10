@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // For refresh token generation
-import RefreshToken from '../models/refreshToken.model.js';
+import RefreshToken from '../models/lgcy_refreshToken.model.js';
 import User from '../models/user.model.js'; // Needed to associate token with user
 
 // Function to generate Access Token
@@ -24,15 +24,17 @@ export const generateRefreshToken = async (userId) => {
     const daysUntilExpiry = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS || '7', 10);
     const expires = new Date();
     expires.setDate(expires.getDate() + daysUntilExpiry);
+    console.log("Expires ", expires.toISOString()); // Log the expiry date for debugging
+    console.log(`Refresh token will expire on: ${expires.toISOString()}`);
 
     // Store the refresh token (consider hashing it in a real-world scenario if desired, for this plan we store it directly as per plan step)
     // For enhanced security, one might hash 'rawRefreshToken' before storing,
     // but the plan specifies storing the token directly for verification.
     // Let's stick to the plan, but acknowledge hashing as a best practice.
     const refreshTokenDoc = new RefreshToken({
-        user: userId,
+        user: user,
         token: rawRefreshToken, // Storing raw token as per current simplified plan
-        expires: expires
+        expiresAt: expires
     });
 
     await refreshTokenDoc.save();
