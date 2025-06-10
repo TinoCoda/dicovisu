@@ -13,7 +13,7 @@ import wordRoutes from './routes/word.route.js';
 import languageRoute from './routes/language.route.js';
 import userRoute from './routes/user.route.js';
 import authRoute from './routes/auth.route.js';
-import { protect } from './middleware/lgcy_auth.middleware.js';
+
 
 dotenv.config();
 
