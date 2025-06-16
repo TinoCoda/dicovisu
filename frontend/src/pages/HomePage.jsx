@@ -1,18 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { VStack, Select as ChakraSelect } from '@chakra-ui/react';
 
+
 import { useWordStore } from '../store/words';
 import { useLanguageStore } from '../store/languages';
+import {useAuthStore} from '../store/authStore';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
-import { set } from 'mongoose';
+
 
 const HomePage = () => {
   console.log("load HomePage");
   const { fetchWords, addOfflineWords, words, searchWord, setSelectedWord,
           wrappedWords, setWrappedWords, wrappedSearchResults, setWrappedSearchResults
    } = useWordStore();
+
+   const { login,logout,refresh, isAuthenticated } = useAuthStore();
+
+
+   
   const { languages, fetchLanguages } = useLanguageStore();
   const [searchResults, setSearchResults] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState("");
@@ -20,6 +27,8 @@ const HomePage = () => {
  
 
   useEffect(() => {
+    //login("tino_tu", "dev-me"); // Example login, replace with actual credentials or logic
+    refresh(); // Refresh authentication status
     fetchWords();
     addOfflineWords();
     fetchLanguages(); // Fetch available languages
@@ -57,7 +66,10 @@ const HomePage = () => {
 
   return (
     <>
+    
       <VStack spacing={4}>
+        
+      
         {/* Language Filter Dropdown */}
         <ChakraSelect
           placeholder="Select Language"
