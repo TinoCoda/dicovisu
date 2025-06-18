@@ -6,9 +6,19 @@ let accessToken = null; // Initialize accessToken to null
 
 export async function  useLoginEndpoint(username, password) {
     try {
-        const response = await axios.post(`${API_BASE_URL}/auth/login`, { username, password });
+        const response = await axios.post(`${API_BASE_URL}/auth/login`, 
+        { username, 
+          password 
+        },
+        {
+            withCredentials: true // Necessary to receive cookies
+        });
+
         if(response.status !== 200) {
             accessToken=response.data.accessToken; 
+            const refreshCookie=response.headers['jwt'];
+            console.log("refreshCookie", refreshCookie);    
+
         }
         return response;
     } catch (error) {

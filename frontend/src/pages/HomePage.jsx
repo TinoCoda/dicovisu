@@ -27,8 +27,8 @@ const HomePage = () => {
  
 
   useEffect(() => {
-    //login("tino_tu", "dev-me"); // Example login, replace with actual credentials or logic
-    refresh(); // Refresh authentication status
+    login("tino_tu", "dev-me"); // Example login, replace with actual credentials or logic
+    //refresh(); // Refresh authentication status
     fetchWords();
     addOfflineWords();
     fetchLanguages(); // Fetch available languages
