@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { SERVER_API_URL } from '../api/config/serverUrl';
 
 export const useLanguageStore = create((set) => ({
     languages: [],
@@ -8,7 +9,7 @@ export const useLanguageStore = create((set) => ({
             if (!language.name || !language.code) {
                 return { success: false, message: "Please fill all required fields" };
             }
-            const response = await fetch("/api/languages", {
+            const response = await fetch(`${SERVER_API_URL}/api/languages`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
@@ -62,7 +63,7 @@ export const useLanguageStore = create((set) => ({
     },
     fetchLanguages: async () => {
         try {
-            const response = await fetch('/api/languages')
+            const response = await fetch(`${SERVER_API_URL}/api/languages`)
             const data = await response.json()
             const sortedLanguages = data.data.sort((a, b) => a.name.localeCompare(b.name))
             set({ languages: sortedLanguages })
@@ -73,7 +74,7 @@ export const useLanguageStore = create((set) => ({
     },
     updateLanguage: async (language) => {
         try {
-            const response = await fetch(`/api/languages/${language._id}`, {
+            const response = await fetch(`${SERVER_API_URL}/api/languages/${language._id}`, {
                 method: "PUT",
                 headers: {
                     'Content-Type': 'application/json'
@@ -93,7 +94,7 @@ export const useLanguageStore = create((set) => ({
     fetchLanguageById: async (id) => {
         try {
             console.log(id);
-            const response = await fetch(`/api/languages`)
+            const response = await fetch(`${SERVER_API_URL}/api/languages`)
             const data = await response.json()
             const language = data.data.find((l) => l._id === id)
             console.log(language);

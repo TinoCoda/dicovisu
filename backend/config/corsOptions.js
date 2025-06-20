@@ -5,6 +5,7 @@ const corsOptions = {
         console.log('CORS Origin:', origin);
         console.log('Allowed Origins:', allowedOrigins);
         console.log('indexOf:', allowedOrigins.indexOf(origin));
+        console.log('\n\n');
         // Check if the origin is in the allowedOrigins array
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
             callback(null, true)

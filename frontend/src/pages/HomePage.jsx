@@ -10,13 +10,14 @@ import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
 
 
+
 const HomePage = () => {
   console.log("load HomePage");
   const { fetchWords, addOfflineWords, words, searchWord, setSelectedWord,
           wrappedWords, setWrappedWords, wrappedSearchResults, setWrappedSearchResults
    } = useWordStore();
 
-   const { login,logout,refresh, isAuthenticated } = useAuthStore();
+   const { login,logout,refresh, isAuthenticated,token } = useAuthStore();
 
 
    
@@ -27,14 +28,17 @@ const HomePage = () => {
  
 
   useEffect(() => {
-    login("tino_tu", "dev-me"); // Example login, replace with actual credentials or logic
-    //refresh(); // Refresh authentication status
+    login("tinotech", "dev-me")
+
+    refresh(); // Refresh authentication status
+
+  
     fetchWords();
     addOfflineWords();
     fetchLanguages(); // Fetch available languages
     //setWrappedWords(words);
     //setWrappedSearchResults(words);
-  }, [fetchWords, addOfflineWords, fetchLanguages]);
+  }, [fetchWords, addOfflineWords, fetchLanguages, login, refresh]);
 
   const handleSearch = async (query) => {
     console.log("Searching for:", query);

@@ -14,7 +14,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 // @route   POST /users
 // @access  Private
 export const createUser = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, roles } = req.body;
 
     if (!username || !password) {
         res.status(400);
@@ -29,9 +29,14 @@ export const createUser = asyncHandler(async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const user = roles? await User.create({
         username,
         password: hashedPassword,
+        roles:roles, // Use provided roles if available
+    }):
+    await User.create({
+        username,
+        password: hashedPassword
     });
 
     if (user) {
@@ -50,7 +55,7 @@ export const createUser = asyncHandler(async (req, res) => {
 // @route   PUT /users/:id
 // @access  Private
 export const updateUser = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, roles } = req.body;
     const userId = req.params.id;
 
     if (!username || !password) {
@@ -67,6 +72,9 @@ export const updateUser = asyncHandler(async (req, res) => {
 
     user.username = username;
     user.password = await bcrypt.hash(password, 10);
+    if (roles) {
+        user.roles = roles; // Update roles if provided
+    }
 
     const updatedUser = await user.save();
 

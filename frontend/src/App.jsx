@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage'
 import AddNewEntry from './pages/AddNewEntry'
 import DetailPage from './pages/DetailPage'
 import AddNewLANG from './pages/AddNewLANG'
+import LoginPage from './pages/LoginPage'
 
 
 
@@ -27,7 +28,7 @@ function App() {
     <Box bg={useColorModeValue("gray.200","gray.700")} p={8} h={"100vh"}>
       <Navbar/>
       <Routes>
-        <Route path='/' element={<HomePage/>} />
+        <Route path='/' element={<LoginPage/>} />
         <Route path='/add' element={<AddNewEntry/>} />
         <Route path='/details' element={<DetailPage/>} />
         <Route path='/languages' element={<AddNewLANG/>} />

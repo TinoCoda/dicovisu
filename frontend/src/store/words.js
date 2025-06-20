@@ -1,5 +1,12 @@
 
 import {create} from 'zustand'
+import {    useAddWordEndpoint,
+            useFetchWordsEndpoint, 
+            useDeleteWordEndpoint,
+            useUpdateWordEndpoint, 
+            useSearchWordEndpoint 
+        } from '../api/words/wordApi';
+import { use } from 'react';
 
 export const useWordStore =create((set) => ({
     words: [],
@@ -9,14 +16,18 @@ export const useWordStore =create((set) => ({
             if(!word.word || !word.meaning || !word.language){
                 return ({ succes:false,message: "Please fill all required fields" });
             }
-            const response = await fetch("/api/words", {
+            const response = await useAddWordEndpoint(word);
+            /*
+             fetch("/api/words", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(word)
-            })
-            const data = await response.json()
+            })    
+            */
+            console.log("addWord response data: ", typeof response); // Debugging log
+            const data = await response;
             set((state) => ({words: [...state.words, data.data]}))
             return {success:true,message:'Word added successfully'};
 
@@ -69,8 +80,9 @@ export const useWordStore =create((set) => ({
     },
     fetchWords: async () => {
         try{
-            const response = await fetch('/api/words')
-            const data = await response.json()
+            const response = await useFetchWordsEndpoint();
+            const data = await response
+            console.log("fetchWords response data: ", typeof data);
             console.log(data);
             // can you sort data.data alphabetically here?
             // Sort data.data alphabetically by the 'word' property
@@ -93,28 +105,36 @@ export const useWordStore =create((set) => ({
 
     },
     deleteWord: async (wid) =>{
-        const response = await fetch(`/api/words/${wid}`,
+        const response = await useDeleteWordEndpoint(wid);
+        
+        /*fetch(`/api/words/${wid}`,
              {method: 'DELETE'
 
-             })
-        const data = await response.json()
+             })*/
+
+        const data = await response
+        console.log("deleteWord response data: ", typeof data); // Debugging log
+        console.log("deleteWord response data: ", data); // Debugging log
 
         if(!data.success){
             
             return {success:false,message:data.message};
         }
 
-
         set((state) => ({words: state.words.filter((w) => w ._id!== wid)}))
     } ,
     updateWord: async (wid, updatedWord) => {
-        const response = await fetch(`/api/words/${wid}`,
+        const response = await useUpdateWordEndpoint(wid, updatedWord);
+        console.log("updateWord response data: ", typeof response); // Debugging log
+        console.log("updateWord response data: ", response); // Debugging log
+        
+        /*fetch(`/api/words/${wid}`,
         { method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(updatedWord)
-        });
+        });*/
 
         const data = await response.json();
         if(!data.success) return {success:false,message:data.message};
@@ -124,10 +144,9 @@ export const useWordStore =create((set) => ({
 
     searchWord: async (query) => {
         try{
-            const response = await fetch(`/api/words/search?word=${query}`);
-            console.log("searchWord called");
-    
-            const data = await response.json();
+            const response = await useSearchWordEndpoint(query);
+            
+            const data = await response; //.json();
             console.log("data from searchWord");
             console.log(data.success);
             console.log(data);
