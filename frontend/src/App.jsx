@@ -28,7 +28,7 @@ function App() {
     <Box bg={useColorModeValue("gray.200","gray.700")} p={8} h={"100vh"}>
       <Navbar/>
       <Routes>
-        <Route path='/' element={<LoginPage/>} />
+        <Route path='/' element={<HomePage/>} />
         <Route path='/add' element={<AddNewEntry/>} />
         <Route path='/details' element={<DetailPage/>} />
         <Route path='/languages' element={<AddNewLANG/>} />
