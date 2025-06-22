@@ -22,7 +22,7 @@ export const verifyJWT = (req, res, next) => {
             if (err) return res.status(403).json({ message: 'Forbidden' })
             req.user = decoded.UserInfo.username
             req.roles = decoded.UserInfo.roles
-            console.log('JWT JWT JWT verified successfully:', req.user, req.roles)
+            console.log('JWT JWT JWT verified successfully:','username:', req.user, '; roles:', req.roles)
             next()
         }
     )

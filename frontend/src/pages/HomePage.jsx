@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { VStack, Select as ChakraSelect } from '@chakra-ui/react';
-
+import { baseStore } from '../store/global';
 
 import { useWordStore } from '../store/words';
 import { useLanguageStore } from '../store/languages';
 import {useAuthStore} from '../store/authStore';
+import { useCountryStore } from '../store/countries';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
 
-
+console.log("load HomePage.jsx");
+console.log("baseStore", baseStore.getState());
 
 const HomePage = () => {
   console.log("load HomePage");
@@ -18,6 +20,7 @@ const HomePage = () => {
    } = useWordStore();
 
    const { login,logout,refresh, isAuthenticated,token } = useAuthStore();
+   const { fetchCountries } = useCountryStore();
 
 
    
@@ -36,10 +39,13 @@ const HomePage = () => {
     fetchWords();
     addOfflineWords();
     fetchLanguages(); // Fetch available languages
+    fetchCountries(); // Fetch available countries
     //setWrappedWords(words);
     //setWrappedSearchResults(words);
-  }, [fetchWords, addOfflineWords, fetchLanguages, login, refresh]);
+  }, [fetchWords, addOfflineWords, fetchLanguages, login, refresh,fetchCountries]);
 
+  console.log("countries", useCountryStore.getState().countries);
+ 
   const handleSearch = async (query) => {
     console.log("Searching for:", query);
     const responseObject = await searchWord(query, selectedLanguage); // Pass selected language code

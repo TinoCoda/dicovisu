@@ -6,7 +6,7 @@ import {    useAddWordEndpoint,
             useUpdateWordEndpoint, 
             useSearchWordEndpoint 
         } from '../api/words/wordApi';
-import { use } from 'react';
+
 
 export const useWordStore =create((set) => ({
     words: [],
@@ -97,7 +97,7 @@ export const useWordStore =create((set) => ({
 
 
         }catch(e){
-            console.log(`Run into an error: ${e.message}`);
+            console.log(`Run into an error: ${e.message}\n${e.stack}`);
             const localWords=JSON.parse(localStorage.getItem('words')) ||[];
             set({words:localWords});
 

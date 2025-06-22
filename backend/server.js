@@ -13,6 +13,7 @@ import wordRoutes from './routes/word.route.js';
 import languageRoute from './routes/language.route.js';
 import userRoute from './routes/user.route.js';
 import authRoute from './routes/auth.route.js';
+import countryRoute from './routes/country.route.js';
 
 
 dotenv.config();
@@ -43,6 +44,7 @@ app.use('/api/words', wordRoutes);
 app.use('/api/languages', languageRoute);
 app.use('/api/users', userRoute);
 app.use('/api/auth', authRoute);
+app.use('/api/countries', countryRoute);
 
 app.all('*', (req, res) => {
     res.status(404);

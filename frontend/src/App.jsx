@@ -11,7 +11,7 @@ import HomePage from './pages/HomePage'
 import AddNewEntry from './pages/AddNewEntry'
 import DetailPage from './pages/DetailPage'
 import AddNewLANG from './pages/AddNewLANG'
-import LoginPage from './pages/LoginPage'
+
 
 
 
