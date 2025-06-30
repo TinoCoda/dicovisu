@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { SERVER_API_URL } from '../api/config/serverUrl';
-import axiosApi from "../features/auth/api";
+import axiosApi from "../features/auth/interceptor";
 import { useAddCountryEndpoint, useFetchCountriesEndpoint } from "../api/countries/countryApi";
 
 export const useCountryStore = create((set) => ({

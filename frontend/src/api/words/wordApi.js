@@ -1,7 +1,7 @@
 
 import { SERVER_API_URL } from '../config/serverUrl';
 
-import axiosApi from '../../features/auth/api';
+import axiosApi from '../../features/auth/interceptor';
 
 const API_BASE_URL = `${SERVER_API_URL}/api`; //'http://localhost:5000/api';
 

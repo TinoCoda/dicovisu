@@ -25,13 +25,13 @@ export async function useLoginEndpoint(username, password) {
         if(response.status == 200) {
             //accessToken=response.data.accessToken; 
             baseStore.getState().setToken(response.data.accessToken); // Update the global store
-            const localAccessToken =baseStore.getState().token; // Get the access token from the global store
-            console.log("Login successful, access token:", localAccessToken);
+            //const localAccessToken =baseStore.getState().token; // Get the access token from the global store
+            
             baseStore.getState().setUser(response.data.user); // Update the user in the global store
             baseStore.getState().setIsAuthenticated(true); // Update the authentication status in the global store
             console.log("User authenticated:", baseStore.getState().user);
             // Update Zustand store with the new access token
-            localStorage.setItem('accessToken', baseStore.getState().token); // Optionally store in localStorage
+            //localStorage.setItem('accessToken', baseStore.getState().token); // Optionally store in localStorage
 
         }else{
             console.error("Login failed with status:", response.status);
