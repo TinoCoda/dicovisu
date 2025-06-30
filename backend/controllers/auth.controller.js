@@ -9,6 +9,9 @@ import asyncHandler from 'express-async-handler'
 // @access Public
 const login = asyncHandler(async (req, res) => {
     const { username, password } = req.body
+    console.log("login request body: ", req.body)
+    console.log("login request username: ", username)
+    console.log("login request password: ", password)
 
     if (!username || !password) {
         return res.status(400).json({ message: 'All fields are required' })
@@ -50,7 +53,7 @@ const login = asyncHandler(async (req, res) => {
     })
 
     // Send accessToken containing username and roles 
-    res.json({ accessToken })
+    res.json({ accessToken,user:foundUser.username, roles: foundUser.roles, message: 'Login successful' })
 })
 
 // @desc Refresh

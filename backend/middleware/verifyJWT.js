@@ -23,6 +23,7 @@ export const verifyJWT = (req, res, next) => {
             req.user = decoded.UserInfo.username
             req.roles = decoded.UserInfo.roles
             console.log('JWT JWT JWT verified successfully:','username:', req.user, '; roles:', req.roles)
+            console.log('next function being called is:', next.name);
             next()
         }
     )

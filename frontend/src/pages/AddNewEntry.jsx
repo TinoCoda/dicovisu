@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Box, Container, Text, VStack, Heading, useColorModeValue, Input, Button, useToast, Textarea, Select as ChakraSelect } from "@chakra-ui/react"
 import { useWordStore } from '../store/words'
 import { useLanguageStore } from '../store/languages'
+import { useCountryStore } from '../store/countries'
 
 function AddNewEntry() {
   const [newWord, setNewWord] = useState({
@@ -15,13 +16,20 @@ function AddNewEntry() {
   const toast = useToast();
   const { addWord } = useWordStore();
   const { languages, fetchLanguages } = useLanguageStore();
+  const { countries, fetchCountries,addCountry } = useCountryStore();
 
   useEffect(() => {
     fetchLanguages();
-  }, [fetchLanguages]);
+    fetchCountries();
+  }, [fetchLanguages], [fetchCountries]);
 
   const handleAddWord = async () => {
+    console.log("countries", useCountryStore.getState().countries);
+    //const country={ name: "China", code: "CN" };
+    //const {success,message}=await addCountry(country);
+    
     const { success, message } = await addWord(newWord);
+    console.log("addWord",success,message);
 
     if (success) {
       setNewWord({

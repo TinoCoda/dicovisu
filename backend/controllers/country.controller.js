@@ -21,3 +21,17 @@ export const getCountries = (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+
+export const addCountry = (req, res) => {
+    const { country } = req.body;
+    if (!country || typeof country !== 'string') {
+        return res.status(400).json({ success: false, message: 'Invalid country name' });
+    }
+
+    if (countries.includes(country)) {
+        return res.status(400).json({ success: false, message: 'Country already exists' });
+    }
+
+    countries.push(country);
+    res.status(201).json({ success: true, message: 'Country added successfully', data: countries });
+}

@@ -1,16 +1,15 @@
 import { create } from "zustand";
 import { SERVER_API_URL } from '../api/config/serverUrl';
 import axiosApi from "../features/auth/api";
+import { useAddCountryEndpoint, useFetchCountriesEndpoint } from "../api/countries/countryApi";
 
 export const useCountryStore = create((set) => ({
     countries: [],
     setCountries: (countries) => set({ countries }),
     fetchCountries: async () => {
         try {
-            const response = await axiosApi.get('/countries');
-            /*if (!response) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }*/
+            const response = await useFetchCountriesEndpoint(); 
+           
             const data = await response;
             set({ countries: data.data });
         } catch (error) {
@@ -22,13 +21,13 @@ export const useCountryStore = create((set) => ({
             if (!country.name || !country.code) {
                 return { success: false, message: "Please fill all required fields" };
             }
-            const response = await fetch(`${SERVER_API_URL}/api/countries`, {
+            const response = await useAddCountryEndpoint(country); /*await fetch(`${SERVER_API_URL}/api/countries`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(country)
-            });
+            });*/
             const data = await response.json();
             set((state) => ({ countries: [...state.countries, data.data] }));
             return { success: true, message: 'Country added successfully' };

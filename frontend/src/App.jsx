@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, useColorModeValue, VStack } from '@chakra-ui/react'
 import {Route, Routes} from "react-router-dom"
+import { useAuthStore } from './store/authStore'
 
 
 
@@ -11,6 +12,7 @@ import HomePage from './pages/HomePage'
 import AddNewEntry from './pages/AddNewEntry'
 import DetailPage from './pages/DetailPage'
 import AddNewLANG from './pages/AddNewLANG'
+import LoginPage from './pages/LoginPage'
 
 
 
@@ -21,14 +23,20 @@ import AddNewLANG from './pages/AddNewLANG'
 
 function App() {
 
+  const { isAuthenticated, user } = useAuthStore();
+
+
 
 
   return (
     <>
+     { isAuthenticated && user ? (
     <Box bg={useColorModeValue("gray.200","gray.700")} p={8} h={"100vh"}>
       <Navbar/>
       <Routes>
-        <Route path='/' element={<HomePage/>} />
+        {/* Define your routes here public route */}
+       
+        <Route path='/' element={<HomePage/>} /> {/* Home page route */}
         <Route path='/add' element={<AddNewEntry/>} />
         <Route path='/details' element={<DetailPage/>} />
         <Route path='/languages' element={<AddNewLANG/>} />
@@ -37,7 +45,15 @@ function App() {
 
 
 
-    </Box>
+    </Box>)
+     : (
+      <Box bg={useColorModeValue("gray.200","gray.700")} p={0} h={"100vh"}>
+       
+        
+          <LoginPage/>
+       
+      </Box>
+    )}
 
     
     </>

@@ -1,10 +1,11 @@
 import { SERVER_API_URL } from "../config/serverUrl";
-import axios from "axios";
+
+import axiosApi from "../../features/auth/api";
 const API_BASE_URL = `${SERVER_API_URL}/api`; // 'http://localhost:5000/api';
 
 export async function useFetchLanguagesEndpoint() {
     try {
-        const response = await axios.get(`${API_BASE_URL}/languages`, {
+        const response = await axiosApi.get(`${API_BASE_URL}/languages`, {
             headers: {
                 'Origin': window.location.origin // Explicitly set the Origin header
             }
@@ -18,7 +19,7 @@ export async function useFetchLanguagesEndpoint() {
 
 export async function useAddLanguageEndpoint(language) {
     try {
-        const response = await axios.post(`${API_BASE_URL}/languages`, language, {
+        const response = await axiosApi.post(`${API_BASE_URL}/languages`, language, {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -31,7 +32,7 @@ export async function useAddLanguageEndpoint(language) {
 
 export async function useDeleteLanguageEndpoint(lid) {
     try {
-        const response = await axios.delete(`${API_BASE_URL}/languages/${lid}`);
+        const response = await axiosApi.delete(`${API_BASE_URL}/languages/${lid}`);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to delete language');
@@ -41,7 +42,7 @@ export async function useDeleteLanguageEndpoint(lid) {
 
 export async function useUpdateLanguageEndpoint(lid, language) {
     try {
-        const response = await axios.put(`${API_BASE_URL}/languages/${lid}`, language, {
+        const response = await axiosApi.put(`${API_BASE_URL}/languages/${lid}`, language, {
             headers: {
                 'Content-Type': 'application/json'
             }

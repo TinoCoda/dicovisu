@@ -13,6 +13,14 @@ export const baseStore = createStore(() => ({
     baseStore.setState({ token })
     localStorage.setItem('accessToken', token) // Store the token in local storage
   },
+  isAuthenticated: false,
+  setIsAuthenticated: (status) => {
+    baseStore.setState({ isAuthenticated: status })
+  },
+  user: null,
+  setUser: (user) => {
+    baseStore.setState({ user })
+  },
 }))
 
 // 2. Hook for React

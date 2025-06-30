@@ -8,9 +8,11 @@ export const useAuthStore = create((set) => ({
     isAuthenticated: false,
     error: null,
     token: null,
+    user:undefined, // Initialize user as undefined
  
     login: async ( username , password ) => {
-        console.log("Attempting to log in with username:", username); // Debugging log
+        console.log("Attempting to log in with username/store:  ", username); // Debugging log
+        console.log("Attempting to log in with password/store:  ",password);
         try {
             console.log("logging in... useAuthStore::::::::::::");
             const response = await useLoginEndpoint(username, password);
@@ -19,6 +21,7 @@ export const useAuthStore = create((set) => ({
             if(response.status===200){
                 console.log("Login successful");
                 set({ isAuthenticated: true, error: null });
+                set({ user: response.data.user }); // Store the user data in the state
                 set({ token: response.data.accessToken }); // Store the token in the state
                baseStore.getState().setToken(response.data.accessToken); // Update the global store
                 //accessToken=response.data.accessToken; // Update the global accessToken variable
