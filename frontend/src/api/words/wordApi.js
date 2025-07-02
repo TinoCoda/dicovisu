@@ -45,6 +45,7 @@ export async function useDeleteWordEndpoint(wid) {
 
 export async function useUpdateWordEndpoint(wid, word) {
     const requestUrl = `${API_BASE_URL}/words/${wid}`;
+    console.log("useUpdateWordEndpoint", requestUrl," ", word);
     try {
         const response = await axiosApi.put(requestUrl, word, {
             headers: {

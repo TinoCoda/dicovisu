@@ -136,10 +136,13 @@ export const useWordStore =create((set) => ({
         body: JSON.stringify(updatedWord)
         });*/
 
-        const data = await response.json();
+        const data = response;//.json();
+        console.log(data);
         if(!data.success) return {success:false,message:data.message};
 
+
         set((state) => ({words: state.words.map((w) => (w._id === wid ? data.data : w))}))
+        return {success:true,message:'Word updated successfully',data:data.data};
     },
 
     searchWord: async (query) => {

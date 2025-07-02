@@ -61,7 +61,7 @@ const login = asyncHandler(async (req, res) => {
 // @access Public - because access token has expired
 const refresh = (req, res) => {
     const cookies = req.cookies
-    //console.log("cookies ",cookies)
+    console.log("cookies ",cookies)
 
     if (!cookies?.jwt) return res.status(401).json({ message: 'Unauthorized' })
 
