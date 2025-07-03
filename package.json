@@ -6,8 +6,8 @@
   "scripts": {
     "dev:ui": "npm --prefix ./frontend run dev",
     "dev": "nodemon --env-file=.env ./backend/server.js",
-    "build": "npm install && npm --prefix ./frontend install && npm --prefix ./frontend run build",
-    "start": "node --env-file=.env ./backend/server.js"
+    "build": "npm install && npm --prefix /frontend install && npm --prefix /frontend run build",
+    "start": "node --env-file=.env /backend/server.js"
   },
   "keywords": [],
   "author": "",

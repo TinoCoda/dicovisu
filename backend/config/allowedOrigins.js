@@ -4,6 +4,7 @@ export const allowedOrigins = [
     'https://www.dandrepairshop.com',
     'https://dandrepairshop.com',
     'http://localhost:5173',
-    'http://localhost:5174'
+    'http://localhost:5174',
+    'https://dicovisu.onrender.com'
 ]
 
