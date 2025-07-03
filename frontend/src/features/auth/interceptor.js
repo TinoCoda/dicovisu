@@ -42,9 +42,6 @@ axiosApi.interceptors.response.use(
          
           console.log("Axios Api::::: token from store:::",baseStore.getState().token)
           const token  = refreshResponse; // Assuming the response contains a token field
-          console.log(" Axios Api:::::New access token received:", token);
-          localStorage.setItem('accessToken', token);
-          
   
           // Retry the original request with the new token
           originalRequest.headers.Authorization = `Bearer ${token}`;

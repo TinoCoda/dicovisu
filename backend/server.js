@@ -22,7 +22,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Recreate __dirname for ES modules
+const __root= path.resolve();
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/|\/$/g, '').replace(/\//g, '\\');
+console.log('Recreated __dirname:', __dirname);
 
 app.use(express.json());
 
@@ -46,6 +48,18 @@ app.use('/api/users', userRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/countries', countryRoute);
 
+
+
+app.use(errorHandler);
+
+if(process.env.NODE_ENV === 'production') {
+    console.log('Production mode: Serving static files from frontend/dist');
+    app.use(express.static(path.join(__root, '/frontend/dist'))); // Serve static files in development
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__root, 'frontend','dist', 'index.html')); // Serve index.html for all other routes
+    });
+}
+
 app.all('*', (req, res) => {
     res.status(404);
     if (req.accepts('html')) {
@@ -56,8 +70,6 @@ app.all('*', (req, res) => {
         res.type('txt').send('404 Not Found');
     }
 });
-
-app.use(errorHandler);
 
 app.listen(PORT, () => {
     connectDB();

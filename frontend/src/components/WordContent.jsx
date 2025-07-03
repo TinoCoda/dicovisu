@@ -4,20 +4,37 @@ import { Text, VStack } from '@chakra-ui/react';
 function WordContent({ selectedWord }) {
   // Function to extract original text and translation pairs
   function extractTranslations(exampleString) {
-    const sentences = exampleString.split('.').map((sentence) => sentence.trim()).filter(Boolean);
-    const regex = /\([A-Za-z]{1,2}\d*\)$/;
+    // Split on period, question mark, or exclamation mark
+     const splitSentencesAndPunctuation=(text) => {
+      const regex = /([^.!?]+)([.!?])/g;
+      const sentences = [];
+      const punctuations = [];
+      
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        sentences.push(match[1].trim());
+        punctuations.push(match[2]);
+      }
+      
+      return { sentences, punctuations };
+    }
 
+    const { sentences, punctuations } = splitSentencesAndPunctuation(exampleString);
+    
+    const regex = /\([A-Za-z]{1,2}\d+[A-Za-z]?\)$/; // matching language codes like (FR1), (H16d), etc.
+  
     const translations = [];
     for (let i = 0; i < sentences.length; i++) {
       const sentence = sentences[i];
       if (regex.test(sentence)) {
-        const originalText = sentence + '.'; // Add the period back
-        const translation = sentences[i + 1] ? sentences[i + 1] + '.' : ''; // Get the next sentence
+        const originalText = sentence + punctuations[i]; 
+        const translation = sentences[i + 1] ? sentences[i + 1] + punctuations[i+1] : '';
         translations.push({ originalText, translation });
       }
     }
     return translations;
   }
+  
 
   // Prepare the content to display
   const translations = selectedWord?.example ? extractTranslations(selectedWord.example) : [];
