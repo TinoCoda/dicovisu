@@ -10,7 +10,7 @@ export async function useLoginEndpoint(username, password) {
     const requestUrl = `${API_BASE_URL}/auth/login`;
     
     console.log("Attempting to log in with username/api: ", username); // Debugging log
-    console.log("Attempting to log in with password/api: ", password); // Debugging log
+    console.log("Attempting to log in with password/api: ","*****"); // Debugging log
 
     try {
         console.log("logging in...");
