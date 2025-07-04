@@ -17,12 +17,12 @@ export const useAuthStore = create((set) => ({
             console.log("logging in... useAuthStore::::::::::::");
             const response = await useLoginEndpoint(username, password);
             console.log("Login response:", typeof response); // Debugging log
-            console.log("Login response:", {
-                username: response.data.username, 
-                roles: response.data.roles, 
-                message: response.data.message 
-        
-              }); // Debugging log
+            const restrictedResponse = {
+              username: response.data.username, 
+              roles: response.data.roles, 
+              message: response.data.message 
+            };
+            console.log("Login response:", restrictedResponse); // Debugging log
             if(response.status===200){
                 console.log("Login successful");
                 set({ isAuthenticated: true, error: null });

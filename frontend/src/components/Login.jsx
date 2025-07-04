@@ -14,12 +14,13 @@ const Login = ({ onLogin }) => {
     e.preventDefault(); // Prevent default form submission behavior
     try {
       const response = await login(username, password); // Call the login function from the auth store
-      console.log("Login response:", {
+      const restrictedResponse= {
         username: response.data.username, 
         roles: response.data.roles, 
         message: response.data.message 
 
-      }); // Log the response for debugging
+      };
+      console.log("Login response:",restrictedResponse); // Log the response for debugging
       setUsername(''); // Clear username input field
       setPassword(''); // Clear password input field
     } catch (err) {

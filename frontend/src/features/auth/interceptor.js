@@ -14,7 +14,7 @@ axiosApi.interceptors.request.use(
    
     console.log("Axios Api:::::Request interceptor triggered");
     const token = baseStore.getState().token; 
-    console.log("Axios Api:::::Current access token:", token);
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
      
