@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { baseStore } from '../../store/global';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api'; // früher war's 'http://localhost:5000/api'
 
 
 
@@ -10,7 +10,7 @@ export async function useLoginEndpoint(username, password) {
     const requestUrl = `${API_BASE_URL}/auth/login`;
     
     console.log("Attempting to log in with username/api: ", username); // Debugging log
-    console.log("Attempting to log in with password/api: ", password); // Debugging log
+    console.log("Attempting to log in with password/api: ","*****"); // Debugging log
 
     try {
         console.log("logging in...");
