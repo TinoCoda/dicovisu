@@ -39,13 +39,11 @@ axiosApi.interceptors.response.use(
           //const refreshToken = localStorage.getItem('refreshToken');
           const refreshResponse = await useRefreshEndpoint(); // Call your refresh token function
           baseStore.getState().setToken(refreshResponse); //
-         
-          console.log("Axios Api::::: token from store:::",baseStore.getState().token)
           const token  = refreshResponse; // Assuming the response contains a token field
   
           // Retry the original request with the new token
           originalRequest.headers.Authorization = `Bearer ${token}`;
-          console.log("Axios Api:::::Retrying original request with new token:", originalRequest.headers.Authorization);
+          
           return axios(originalRequest);
         } catch (error) {
           // Handle refresh token error or redirect to login

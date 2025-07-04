@@ -56,10 +56,10 @@ export async function useRefreshEndpoint() {
         const response = await axios.get(requestUrl, {
             withCredentials: true, // Needed to send the HttpOnly cookie
         });
-        console.log("Response from refresh endpoint:", response.data);
+      
 
         const newAccessToken = response.data.accessToken;
-        console.log("New access token received:", newAccessToken);
+        
         if (!newAccessToken) {
             baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
             throw new Error('No access token received from refresh endpoint');
@@ -67,11 +67,8 @@ export async function useRefreshEndpoint() {
 
         // Update the Zustand store
         baseStore.getState().setToken(newAccessToken); // Update the global store
-        console.log("Updated access token in Zustand store after refresh:", baseStore.getState().token);
+        
         baseStore.getState().setIsAuthenticated(true); // Ensure the user is authenticated
-
-       
-        console.log("New access token saved in Zustand store and localStorage:", newAccessToken);
 
         return newAccessToken;
     } catch (error) {
