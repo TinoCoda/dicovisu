@@ -11,7 +11,7 @@ import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
 
 console.log("load HomePage.jsx");
-console.log("baseStore", baseStore.getState());
+//console.log("baseStore", baseStore.getState());
 
 const HomePage = () => {
   console.log("load HomePage");
