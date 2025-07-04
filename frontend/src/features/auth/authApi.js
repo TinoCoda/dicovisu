@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { baseStore } from '../../store/global';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api'; // früher war's 'http://localhost:5000/api'
 
 
 
