@@ -9,6 +9,7 @@ import DetailPage from './pages/DetailPage'
 import AddNewLANG from './pages/AddNewLANG'
 import LoginPage from './pages/LoginPage'
 import EditWordPage from './pages/EditWordPage'
+import LogoutPage from './pages/LogoutPage'
 
 
 
@@ -30,6 +31,7 @@ function App() {
         <Route path='/details' element={<DetailPage/>} />
         <Route path="/edit-word/:id" element={<EditWordPage />} />
         <Route path='/languages' element={<AddNewLANG/>} />
+        <Route path='/logout' element={<LogoutPage/>} />
         
       </Routes>
     </Box>)

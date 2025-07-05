@@ -1,43 +1,39 @@
 import React, { useState } from "react";
 import { Box, Button, Input, Text, Flex, useColorModeValue } from "@chakra-ui/react";
-import axios from "axios"; // For API calls
+import { useRegisterEndpoint } from "../features/users/userApi";// For API calls
 
 const SignUp = ({ onSignUpSuccess }) => {
-  const [email, setEmail] = useState("");
+  const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [invitationCode, setInvitationCode] = useState(""); // New state for invitation code
+ 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const validateInvitationCode = async (code) => {
-    try {
-      // Call the backend to validate the invitation code
-      const response = await axios.post("http://localhost:2000/api/invitations/validate", {
-        code,
-      });
-      return response.data.success; // Return true if the code is valid
-    } catch (err) {
-      console.error("Error validating invitation code:", err);
-      return false; // Return false if validation fails
-    }
-  };
 
   const handleSignUp = async () => {
     try {
       // Validate the invitation code first
-      const isValidCode = await validateInvitationCode(invitationCode);
-      if (!isValidCode) {
-        setError("Invalid or expired invitation code.");
-        setSuccess(null);
-        return;
-      }
+
 
       // Simulate sign-up logic (replace with actual API call)
-      if (email && password && name) {
-        setSuccess("Account created successfully! You can now log in.");
-        setError(null);
-        setTimeout(() => onSignUpSuccess(), 2000); // Switch back to login after success
+      if (username && password && name) {
+        const response = await useRegisterEndpoint(username, password);
+        console.log("SignUp response:", response);
+
+        if(response.status===201){
+          console.log("SignUp response:", response);
+          setSuccess("Account created successfully! You can now log in.");
+          setError(null);
+          setTimeout(() => onSignUpSuccess(), 2000); // Switch back to login after success
+
+
+        }else{
+          console.error("SignUp error:", response);
+          setError(response.message || "Failed to create account. Please try again.");
+          setSuccess(null);
+        }
+        
       } else {
         setError("All fields are required.");
         setSuccess(null);
@@ -84,10 +80,10 @@ const SignUp = ({ onSignUpSuccess }) => {
           mb="4"
         />
         <Input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Username"
+          type="username"
+          value={username}
+          onChange={(e) => setusername(e.target.value)}
           mb="4"
         />
         <Input
@@ -95,13 +91,6 @@ const SignUp = ({ onSignUpSuccess }) => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          mb="4"
-        />
-        <Input
-          placeholder="Invitation Code"
-          type="text"
-          value={invitationCode}
-          onChange={(e) => setInvitationCode(e.target.value)}
           mb="4"
         />
         <Button colorScheme="blue" w="full" onClick={handleSignUp}>
