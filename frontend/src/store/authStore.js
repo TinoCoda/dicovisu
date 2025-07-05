@@ -67,7 +67,7 @@ export const useAuthStore = create((set) => ({
                 set({ token: response.data.accessToken }); // Store the new token in the state
                 //accessToken=response.data.accessToken; // Update the global accessToken variable
                 setAccessToken(response.data.accessToken); // Update the global store
-                localStorage.setItem('accessToken', response.data.accessToken); // Update local storage
+                //localStorage.setItem('accessToken', response.data.accessToken); // Update local storage
             }else{
                 console.log("store::: refreshing failed");
             }

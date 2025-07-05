@@ -11,7 +11,7 @@ export const baseStore = createStore(() => ({
   token: null,
   setToken: (token) => {
     baseStore.setState({ token })
-    localStorage.setItem('accessToken', token) // Store the token in local storage
+    //localStorage.setItem('accessToken', token) // Store the token in local storage
   },
   isAuthenticated: false,
   setIsAuthenticated: (status) => {
