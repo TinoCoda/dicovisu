@@ -1,1 +1,1 @@
-export const SERVER_API_URL='https://dicovisu.onrender.com/';//'http://localhost:5000';
+export const SERVER_API_URL='';//'http://localhost:5000';

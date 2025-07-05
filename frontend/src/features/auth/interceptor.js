@@ -5,7 +5,7 @@ import { baseStore } from '../../store/global';
 import { useRefreshEndpoint } from './authApi'; // Assuming you have a function to refresh the token
 
 const axiosApi = axios.create({
-  baseURL: `${SERVER_API_URL}/api`, // 'http://localhost:5000/api',
+  baseURL: `${SERVER_API_URL}`, // 'http://localhost:5000/api', set it to nothing
 });
 
 // Add a request interceptor

@@ -6,7 +6,7 @@ import axiosApi from '../../features/auth/interceptor';
 const API_BASE_URL = `${SERVER_API_URL}/api`; //'http://localhost:5000/api';
 
 export async  function useFetchWordsEndpoint() {
-    const requestUrl = `/words`;
+    const requestUrl = `${API_BASE_URL}/words`;
     try {
         const response = await axiosApi.get(requestUrl);
         return response.data;
