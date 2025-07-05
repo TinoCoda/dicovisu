@@ -83,6 +83,11 @@ export async function useLogoutEndpoint() {
         baseStore.getState().setToken(null); // Clear the token in the global store
         baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
         baseStore.getState().setUser(null); // Clear user data in the global store
+        console.clear(); // Clear console logs
+        localStorage.clear(); // Clear local storage
+        console.log("User logged out, clearing user data");
+        console.log(baseStore.getState().user);
+        
         return response;
     } catch (error) {
         throw new Error(error.message || 'Logout failed');

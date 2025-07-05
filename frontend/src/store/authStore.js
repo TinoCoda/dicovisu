@@ -46,7 +46,7 @@ export const useAuthStore = create((set) => ({
             const response = await useLogoutEndpoint();
             if(response.status===200){
                 console.log("Logout successful");
-                set({ isAuthenticated: false, error: null });
+                set({ isAuthenticated: false, error: null,user:null ,token:null});
             }
             
             return response; // Return the response for further use if needed

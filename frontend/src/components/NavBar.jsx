@@ -5,10 +5,14 @@ import { CiSquarePlus } from "react-icons/ci";
 import { IoMoon } from "react-icons/io5";
 import { LuSun } from "react-icons/lu";
 import { DiAptana } from "react-icons/di";
+import { IoMdLogOut } from "react-icons/io";
+import { IoMdLogIn } from "react-icons/io";
+import { useAuthStore } from '../store/authStore';
 
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   return (
     <Container maxW="1140px" px={4} >
         <Flex h={16} 
@@ -43,6 +47,12 @@ const Navbar = () => {
                     <Link to={"/languages"}>
                         <Button>
                             <DiAptana fontSize={20} />
+                        </Button>
+                    </Link>
+                    <Link to={"/logout"}>
+                        <Button>
+                            {isAuthenticated ? <IoMdLogOut fontSize={20} /> : <IoMdLogin fontSize={20} />}
+                           
                         </Button>
                     </Link>
                    
