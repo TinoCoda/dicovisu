@@ -25,8 +25,9 @@ export const useAuthStore = create((set) => ({
             console.log("Login response:", restrictedResponse); // Debugging log
             if(response.status===200){
                 console.log("Login successful");
+           
                 set({ isAuthenticated: true, error: null });
-                set({ user: response.data.user }); // Store the user data in the state
+                set({ user: response.data.username }); // Store the user data in the state
                 set({ token: response.data.accessToken }); // Store the token in the state
                baseStore.getState().setToken(response.data.accessToken); // Update the global store
                 //accessToken=response.data.accessToken; // Update the global accessToken variable

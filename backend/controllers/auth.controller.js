@@ -53,7 +53,7 @@ const login = asyncHandler(async (req, res) => {
     })
 
     // Send accessToken containing username and roles 
-    res.json({ accessToken,user:foundUser.username, roles: foundUser.roles, message: 'Login successful' })
+    res.json({ accessToken,username:foundUser.username, roles: foundUser.roles, message: 'Login successful' })
 })
 
 // @desc Refresh
