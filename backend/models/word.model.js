@@ -12,7 +12,7 @@ const wordSchema = new mongoose.Schema({
     description:
     { type: String, required: true, default: "" },
     language: {
-        type: String,
+        type: [String],
         required: true,
     },
 

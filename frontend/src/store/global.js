@@ -8,6 +8,10 @@ export const baseStore = createStore(() => ({
   setName: (newName) => {
     baseStore.setState({ name: newName })
   },
+  language:"",
+  setLanguage: (language) => {
+    baseStore.setState({ language: language })
+  },
   token: null,
   setToken: (token) => {
     baseStore.setState({ token })

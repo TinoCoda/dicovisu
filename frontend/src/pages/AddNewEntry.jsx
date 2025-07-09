@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Container, Text, VStack, Heading, useColorModeValue, Input, Button, useToast, Textarea, Select as ChakraSelect } from "@chakra-ui/react"
-import { useWordStore } from '../store/words'
-import { useLanguageStore } from '../store/languages'
-import { useCountryStore } from '../store/countries'
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Text, VStack, Heading, useColorModeValue, Input, Button, useToast, Textarea } from "@chakra-ui/react";
+import Select from 'react-select'; // Import react-select
+import { useWordStore } from '../store/words';
+import { useLanguageStore } from '../store/languages';
+import { useCountryStore } from '../store/countries';
 
 function AddNewEntry() {
   const [newWord, setNewWord] = useState({
     word: "",
     meaning: "",
-    language: "",
+    language: [], // Updated to an array for multiple languages
     description: "",
     example: "",
   });
@@ -16,30 +17,27 @@ function AddNewEntry() {
   const toast = useToast();
   const { addWord } = useWordStore();
   const { languages, fetchLanguages } = useLanguageStore();
-  const { countries, fetchCountries,addCountry } = useCountryStore();
+  const { fetchCountries } = useCountryStore();
 
   useEffect(() => {
     fetchLanguages();
     fetchCountries();
-  }, [fetchLanguages], [fetchCountries]);
+  }, [fetchLanguages, fetchCountries]);
 
   const handleAddWord = async () => {
-    console.log("countries", useCountryStore.getState().countries);
-    //const country={ name: "China", code: "CN" };
-    //const {success,message}=await addCountry(country);
-    
+    console.log("Submitting new word:", newWord);
+
     const { success, message } = await addWord(newWord);
-    console.log("addWord",success,message);
+    console.log("addWord", success, message);
 
     if (success) {
       setNewWord({
         word: "",
         meaning: "",
-        language: "",
+        language: [],
         description: "",
         example: "",
       });
-      console.log(success, message);
 
       toast({
         title: "Word added successfully",
@@ -56,9 +54,13 @@ function AddNewEntry() {
         isClosable: true,
       });
     }
+  };
 
-    console.log(newWord);
-  }
+  const handleLanguageChange = (selectedOptions) => {
+    // Update the language field with an array of selected language codes
+    const selectedLanguages = selectedOptions.map((option) => option.value);
+    setNewWord({ ...newWord, language: selectedLanguages });
+  };
 
   return (
     <>
@@ -82,18 +84,19 @@ function AddNewEntry() {
                 value={newWord.meaning}
                 onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
               />
-              <ChakraSelect
-                placeholder="Select Language"
-                name="language"
-                value={newWord.language}
-                onChange={(e) => setNewWord({ ...newWord, language: e.target.value })}
-              >
-                {languages.map((language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.name}
-                  </option>
-                ))}
-              </ChakraSelect>
+              <Select
+                isMulti // Enable multi-select
+                options={languages.map((language) => ({
+                  value: language.code,
+                  label: language.name,
+                }))}
+                placeholder="Select Languages"
+                onChange={handleLanguageChange} // Handle language selection
+                value={newWord.language.map((code) => ({
+                  value: code,
+                  label: languages.find((lang) => lang.code === code)?.name || code,
+                }))}
+              />
               <Textarea
                 placeholder="Description"
                 name="description"
@@ -118,7 +121,7 @@ function AddNewEntry() {
         </VStack>
       </Container>
     </>
-  )
+  );
 }
 
-export default AddNewEntry
+export default AddNewEntry;

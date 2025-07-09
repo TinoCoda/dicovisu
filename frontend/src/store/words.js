@@ -17,15 +17,7 @@ export const useWordStore =create((set) => ({
                 return ({ succes:false,message: "Please fill all required fields" });
             }
             const response = await useAddWordEndpoint(word);
-            /*
-             fetch("/api/words", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(word)
-            })    
-            */
+
             console.log("addWord response data: ", typeof response); // Debugging log
             const data = await response;
             set((state) => ({words: [...state.words, data.data]}))
@@ -145,9 +137,10 @@ export const useWordStore =create((set) => ({
         return {success:true,message:'Word updated successfully',data:data.data};
     },
 
-    searchWord: async (query) => {
+    searchWord: async (query,selectedLanguage) => {
         try{
-            const response = await useSearchWordEndpoint(query);
+            console.log("selected language in wordsStore:", selectedLanguage);
+            const response = await useSearchWordEndpoint(query,selectedLanguage);
             
             const data = await response; //.json();
             console.log("data from searchWord");

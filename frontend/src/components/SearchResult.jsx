@@ -1,9 +1,24 @@
 import { Box, List, ListItem, Text } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+import { baseStore } from "../store/global";
 
 const SearchResult = ({ results, onSelect }) => {
   if (!results || results.length === 0) {
     return null;
+  }
+  const language = baseStore.getState().language;
+  let filteredResults = results;
+  if (language) {
+    filteredResults = results.filter((result) => result.language.includes(language));
+    if (filteredResults.length === 0) {
+      return (
+        <Box mt={2} w="full" bg="white" boxShadow="md" borderRadius="md" p={2}>
+          <Text fontSize="md" color="gray.500">
+            No results found for the selected language.
+          </Text>
+        </Box>
+      );
+    }
   }
 
   return (
@@ -19,7 +34,7 @@ const SearchResult = ({ results, onSelect }) => {
       overflowY="auto"
     >
       <List spacing={2}>
-        {results.map((result) => (
+        {filteredResults.map((result) => (
           <ListItem
             key={result?result.id:""}
             p={2}

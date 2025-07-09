@@ -40,8 +40,8 @@ const HomePage = () => {
     addOfflineWords();
     fetchLanguages(); // Fetch available languages
     fetchCountries(); // Fetch available countries
-    //setWrappedWords(words);
-    //setWrappedSearchResults(words);
+    setWrappedWords(words);
+    setWrappedSearchResults(words);
   }, [fetchWords, addOfflineWords, fetchLanguages, login, refresh,fetchCountries]);
 
   console.log("countries", useCountryStore.getState().countries);
@@ -49,11 +49,14 @@ const HomePage = () => {
   const handleSearch = async (query) => {
     console.log("Searching for:", query);
     const responseObject = await searchWord(query, selectedLanguage); // Pass selected language code
-    console.log("response:", responseObject);
-    const result = responseObject.data;
+    console.log("response: search", responseObject);
+    const result = responseObject?.data;
     console.log("success:", responseObject.success);
     console.log("message:", responseObject.message);
-
+    if (!responseObject.success) {
+      console.error("Search failed:", responseObject.message);
+      return;
+    }
     setSearchResults(result);
     //setWrappedSearchResults(result);
   };
@@ -65,13 +68,21 @@ const HomePage = () => {
 
   const handleLanguageChange = (e) => {
     const languageCode = e.target.value;
-    setSelectedLanguage(languageCode);
+    console.log("current Language:", baseStore.getState().language);
+    baseStore.getState().setLanguage(languageCode);
+    console.log(" Language after selection:", baseStore.getState().language);
+    
+
+    setSelectedLanguage(languageCode); 
+    /*
     console.log("Selected language code:", languageCode);
 
     const filteredWords = words.filter((word) => word.language === languageCode);
-    //setWrappedWords(filteredWords);
+    console.log("Selected language Filtered words:", filteredWords);
+    setWrappedWords(filteredWords);
     const filteredSearchResults = searchResults.filter((word) => word.language === languageCode);
-    //setWrappedSearchResults(filteredSearchResults);
+    console.log("Selected language Filtered search results:", filteredSearchResults);
+    setWrappedSearchResults(filteredSearchResults);*/
   };
 
   return (

@@ -23,6 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 // Recreate __dirname for ES modules
 const __root= path.resolve();
+console.log('Recreated __root:', __root);
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/|\/$/g, '').replace(/\//g, '\\');
 console.log('Recreated __dirname:', __dirname);
 

@@ -4,10 +4,17 @@ import { Input, Button, InputGroup, InputRightElement, VStack } from "@chakra-ui
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState("");
 
-  const handleSearch = () => {
+  const handleSearch = (searchQuery) => {
     if (onSearch) {
-      onSearch(query);
+      console.log("Search query:", searchQuery);
+      onSearch(searchQuery); // Use the passed value directly
     }
+  };
+
+  const handleType = (e) => {
+    const newQuery = e.target.value; // Get the current input value
+    setQuery(newQuery); // Update the state
+    handleSearch(newQuery); // Pass the current value to handleSearch
   };
 
   return (
@@ -16,10 +23,10 @@ function SearchBar({ onSearch }) {
         <Input
           placeholder="Search for a word..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleType} // Call handleType on input change
         />
         <InputRightElement width="4.5rem">
-          <Button colorScheme="blue" onClick={handleSearch}>
+          <Button colorScheme="blue" onClick={() => handleSearch(query)}>
             Search
           </Button>
         </InputRightElement>
