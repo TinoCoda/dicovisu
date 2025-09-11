@@ -1,4 +1,4 @@
-import { Box, List, ListItem, Text } from "@chakra-ui/react";
+import { Box, List, ListItem, Text, HStack } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { baseStore } from "../store/global";
 
@@ -36,16 +36,25 @@ const SearchResult = ({ results, onSelect }) => {
       <List spacing={2}>
         {filteredResults.map((result) => (
           <ListItem
-            key={result?result.id:""}
+            key={result ? result.id : ""}
             p={2}
             borderRadius="md"
             _hover={{ bg: "gray.100", cursor: "pointer" }}
             onClick={() => onSelect(result)}
           >
             <Link to={`/details`}>
-              <Text fontSize="md" fontWeight={"medium"} color={"black"}>
-                {result?result.word:""}
-              </Text>
+              <HStack spacing={4} justifyContent="space-between">
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="md" fontWeight="medium" color="black">
+                    {result ? result.word : ""}
+                  </Text>
+                </Box>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="sm" color="gray.500">
+                    {result ? result.meaning : ""}
+                  </Text>
+                </Box>
+              </HStack>
             </Link>
           </ListItem>
         ))}

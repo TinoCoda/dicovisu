@@ -68,8 +68,13 @@ export const searchWordStart = async (req, res) => {
     const { word } = req.query;
     try {
         const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
-        res.status(200).json({success:true, data:words});
-        //console.log(words);
+        const meanings = await Word.find({ meaning: { $regex: `^${word}`, $options: "i" } });
+        const combinedResults = [...words, ...meanings];
+        const uniqueResults = Array.from(new Set(combinedResults.map((w) => w._id.toString()))).map((id) =>
+            combinedResults.find((w) => w._id.toString() === id)
+        );
+        res.status(200).json({success:true, data: uniqueResults });
+        //console.log(uniqueResults);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
         console.error(`Error while searching word: ${error.message}`);
