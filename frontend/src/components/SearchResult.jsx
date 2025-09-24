@@ -2,6 +2,16 @@ import { Box, List, ListItem, Text, HStack } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { baseStore } from "../store/global";
 
+function combineTranslations(meaning, translations) {
+  console.log("combineTranslations", meaning, translations);
+  if (!translations || translations.length === 0) {
+    return meaning;
+  }
+  const translationTexts = translations.map((t) => t).join(", ");
+  console.log("translationTexts", translationTexts);
+  return `${meaning}, (${translationTexts})`;
+}
+
 const SearchResult = ({ results, onSelect }) => {
   if (!results || results.length === 0) {
     return null;
@@ -51,7 +61,7 @@ const SearchResult = ({ results, onSelect }) => {
                 </Box>
                 <Box flex="1" textAlign="left">
                   <Text fontSize="sm" color="gray.500">
-                    {result ? result.meaning : ""}
+                    {result ? combineTranslations(result.meaning,result.translations) : ""}
                   </Text>
                 </Box>
               </HStack>

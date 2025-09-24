@@ -51,6 +51,11 @@ function EditWordPage() {
           value={wordDetails.meaning}
           onChange={(e) => setWordDetails({ ...wordDetails, meaning: e.target.value })}
         />
+        <Input
+          placeholder="other translations (comma separated)"
+          value={wordDetails.translations}
+          onChange={(e) => setWordDetails({ ...wordDetails, translations: e.target.value.split(',').map(t => t.trim()) })}
+        />
         <Textarea
           placeholder="Description"
           value={wordDetails.description}

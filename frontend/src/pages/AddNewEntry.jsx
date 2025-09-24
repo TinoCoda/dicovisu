@@ -131,6 +131,12 @@ function AddNewEntry() {
                 value={newWord.meaning}
                 onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
               />
+              <Input
+                placeholder="other translations (comma separated)"
+                name="translations"
+                value={newWord.translations}
+                onChange={(e) => setNewWord({ ...newWord, translations: e.target.value.split(',').map(t => t.trim()) })}
+              />
               <Select
                 isMulti // Enable multi-select
                 options={languages.map((language) => ({

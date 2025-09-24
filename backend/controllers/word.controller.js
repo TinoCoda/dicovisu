@@ -69,7 +69,9 @@ export const searchWordStart = async (req, res) => {
     try {
         const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
         const meanings = await Word.find({ meaning: { $regex: `^${word}`, $options: "i" } });
-        const combinedResults = [...words, ...meanings];
+        const translations = await Word.find({ translations: { $regex: `^${word}`, $options: "i" } });
+        const combinedResults = [...words, ...meanings, ...translations];
+       
         const uniqueResults = Array.from(new Set(combinedResults.map((w) => w._id.toString()))).map((id) =>
             combinedResults.find((w) => w._id.toString() === id)
         );

@@ -15,6 +15,11 @@ const wordSchema = new mongoose.Schema({
         type: [String],
         required: true,
     },
+    translations:{
+        type: [String],
+        required: false,
+        default: []
+    },
 
     example: {
         type: String,
