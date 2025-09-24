@@ -7,7 +7,7 @@ function combineTranslations(meaning, translations) {
   if (!translations || translations.length === 0) {
     return meaning;
   }
-  const translationTexts = translations.map((t) => t).join(", ");
+  const translationTexts = translations.join(", ");
   console.log("translationTexts", translationTexts);
   return `${meaning}, (${translationTexts})`;
 }
