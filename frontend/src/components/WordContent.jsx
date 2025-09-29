@@ -41,6 +41,9 @@ function WordContent({ selectedWord }) {
 
   return (
     <VStack>
+      <Text fontStyle="italic" align="left">
+        Language(s): {selectedWord.language.join(', ')}
+      </Text>
       <Text fontWeight="bold" fontSize="md">
         {selectedWord.meaning}
       </Text>

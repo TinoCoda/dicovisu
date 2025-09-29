@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { VStack, Select as ChakraSelect } from '@chakra-ui/react';
+import { VStack, Select as ChakraSelect,Text } from '@chakra-ui/react';
 import { baseStore } from '../store/global';
 
 import { useWordStore } from '../store/words';
@@ -9,6 +9,7 @@ import { useCountryStore } from '../store/countries';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
+import { fi } from 'date-fns/locale';
 
 console.log("load HomePage.jsx");
 //console.log("baseStore", baseStore.getState());
@@ -27,6 +28,8 @@ const HomePage = () => {
   const { languages, fetchLanguages } = useLanguageStore();
   const [searchResults, setSearchResults] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [entriesCount, setEntriesCount] = useState(0);
+
 
  
 
@@ -58,6 +61,12 @@ const HomePage = () => {
       return;
     }
     setSearchResults(result);
+    if (selectedLanguage===""){
+    setEntriesCount(result.length);
+    }else{
+      const filteredWords = result.filter((word) => word.language.includes(selectedLanguage));
+      setEntriesCount(filteredWords.length);
+    }
     //setWrappedSearchResults(result);
   };
 
@@ -74,6 +83,13 @@ const HomePage = () => {
     
 
     setSelectedLanguage(languageCode); 
+    const filteredWords = words.filter((word) => word.language.includes(languageCode));
+    if(filteredWords.length>0){
+      setEntriesCount(filteredWords.length);
+    }else{
+      setEntriesCount(0);
+
+    }
     /*
     console.log("Selected language code:", languageCode);
 
@@ -89,14 +105,14 @@ const HomePage = () => {
     <>
     
       <VStack spacing={4}>
-        
-      
+  
         {/* Language Filter Dropdown */}
         <ChakraSelect
           placeholder="Select Language"
           onChange={handleLanguageChange}
           value={selectedLanguage}
-          width={"12%"}
+          width={"65%"}
+          p={5}
         >
           {languages.map((language) => (
             <option key={language.code} value={language.code}>
@@ -108,9 +124,22 @@ const HomePage = () => {
         {/* Search Bar */}
         <SearchBar onSearch={handleSearch} />
 
+        <Text fontSize={{ base: "12", sm: "14" }}
+          fontWeight={"bold"}
+          
+          textAlign={"center"}
+          >
+            {searchResults.length > 0 ? `Number of entries: ${entriesCount}`: ""}
+        </Text>
+
+
+
         {/* Search Results */}
         <SearchResult results={searchResults.length > 0 ? searchResults : words} onSelect={handleSelect} />
+
+      
       </VStack>
+      
     </>
   );
 };
