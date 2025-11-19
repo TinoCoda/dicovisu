@@ -33,7 +33,7 @@ const Navbar = () => {
 					bgGradient={"linear(to-r, cyan.400, blue.500)"}
 					bgClip={"text"}
 				>
-					<Link to={"/"}> Discover New Words</Link>
+					<Link to={"/"}> Longukanu si Mbembu sietu</Link>
 				</Text>
                 <HStack spacing={2}>
                     <Link to={"/add"}>

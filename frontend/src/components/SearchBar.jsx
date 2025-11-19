@@ -21,13 +21,13 @@ function SearchBar({ onSearch }) {
     <VStack spacing={4} width="100%" maxW="md">
       <InputGroup>
         <Input
-          placeholder="Search for a word..."
+          placeholder="tomb' liambu..."
           value={query}
           onChange={handleType} // Call handleType on input change
         />
         <InputRightElement width="4.5rem">
           <Button colorScheme="blue" onClick={() => handleSearch(query)}>
-            Search
+            Tomb'
           </Button>
         </InputRightElement>
       </InputGroup>

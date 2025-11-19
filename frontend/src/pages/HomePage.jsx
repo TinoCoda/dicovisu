@@ -108,7 +108,7 @@ const HomePage = () => {
   
         {/* Language Filter Dropdown */}
         <ChakraSelect
-          placeholder="Select Language"
+          placeholder="Sâla Mbembu"
           onChange={handleLanguageChange}
           value={selectedLanguage}
           width={"65%"}
