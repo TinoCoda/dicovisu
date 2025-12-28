@@ -14,18 +14,35 @@ export const useWordStore =create((set) => ({
     words: [],
     setWords: (words) => set({words}),
     addWord: async (word) => {
+        console.log('🔵 addWord called with:', JSON.stringify(word, null, 2));
         try{
+            console.log('Checking validation...');
             if(!word.word || !word.meaning || !word.language){
-                return ({ succes:false,message: "Please fill all required fields" });
+                console.log('❌ Validation failed');
+                return ({ success:false, message: "Please fill all required fields", word: null });
             }
+            console.log('✓ Validation passed, calling API endpoint...');
             const response = await useAddWordEndpoint(word);
 
-            console.log("addWord response data: ", typeof response); // Debugging log
+            console.log("addWord API response (type):", typeof response);
+            console.log("addWord API response (data):", JSON.stringify(response, null, 2));
+            
             const data = await response;
+            console.log("After await - data:", JSON.stringify(data, null, 2));
+            console.log("data.data:", JSON.stringify(data.data, null, 2));
+            
             set((state) => ({words: [...state.words, data.data]}))
-            return {success:true,message:'Word added successfully'};
+            console.log('✓ Word added to store');
+            
+            const returnValue = {success:true, message:'Word added successfully', word: data.data};
+            console.log('Returning:', JSON.stringify(returnValue, null, 2));
+            return returnValue;
 
         }catch(error){
+            console.log('💥 addWord caught error:', error);
+            console.log('Error response:', error.response);
+            console.log('Error status:', error.response?.status);
+            
             var offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
             const offlineNewWordsSet=new Set(offlineNewWords.map((w)=>w.word));
             offlineNewWordsSet.add(word);
@@ -39,8 +56,19 @@ export const useWordStore =create((set) => ({
            
             localStorage.setItem('newWords',JSON.stringify(offlineNewWords));
 
-            console.log(`connection to database lost, impossible to add a new word:\n ${error.message}`);
-            return ({succes:false, message:`connection to database lost, impossible to add a new word:\n ${error.message}`});
+            // Extract error message - handle 409 (conflict) specially
+            let errorMessage = error.message;
+            if (error.response?.status === 409) {
+                errorMessage = 'Word already exists in database';
+                console.log('Status 409 - Word already exists');
+            } else if (error.message) {
+                errorMessage = error.message.split(' url=')[0]; // Remove URL from error message
+            }
+
+            console.log(`Error message: ${errorMessage}`);
+            const returnValue = {success:false, message: errorMessage, word: null};
+            console.log('Returning error:', JSON.stringify(returnValue, null, 2));
+            return returnValue;
 
         }
 

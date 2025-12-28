@@ -118,6 +118,12 @@ function AddWordsByJson() {
     const seenWords = new Set();
 
     words.forEach((wordObj) => {
+      // Skip invalid word objects
+      if (!wordObj || !wordObj.word || !wordObj.meaning) {
+        console.warn('Skipping invalid word object in removeDuplicates:', wordObj);
+        return;
+      }
+      
       const key = `${wordObj.word}-${wordObj.meaning}`.toLowerCase();
       if (!seenWords.has(key)) {
         seenWords.add(key);
@@ -214,69 +220,290 @@ function AddWordsByJson() {
     const successList = [];
     const failedList = [];
 
+    // Fetch all existing words first to ensure the store is up-to-date
+    await fetchWords();
+    
     // Get all existing words from the store
     const existingWordsMap = new Map(
-      useWordStore.getState().words.map(w => [w.word.toLowerCase(), w])
+      useWordStore.getState().words.map(w => [w.word.toLowerCase().trim(), w])
     );
 
-    // Process words one by one
+    console.log(`Existing words in store: ${existingWordsMap.size}`); // Debug log
+
+    // PHASE 1: Create/Update all words and build a word → ID map
+    const wordIdMap = new Map(); // Maps normalized word text → word ID
+    
     for (let i = 0; i < uniqueWords.length; i++) {
       const newWordData = uniqueWords[i];
-      const existingWord = existingWordsMap.get(newWordData.word.toLowerCase());
+      
+      console.log(`\n=== Processing word ${i + 1}/${uniqueWords.length} ===`);
+      console.log('Word data:', JSON.stringify(newWordData, null, 2));
+      
+      // Validate that the word object has required fields
+      if (!newWordData || !newWordData.word || !newWordData.meaning) {
+        console.error('❌ VALIDATION FAILED: Invalid word object');
+        failedList.push({ 
+          word: newWordData?.word || 'Unknown', 
+          error: 'Missing required fields (word or meaning)' 
+        });
+        continue;
+      }
+
+      console.log(`✓ Validation passed for: "${newWordData.word}"`);
+      const existingWord = existingWordsMap.get(newWordData.word.toLowerCase().trim());
+      console.log(`Existing word check: ${existingWord ? 'FOUND (will update)' : 'NOT FOUND (will add)'}`);
 
       try {
         if (existingWord) {
+          console.log(`→ Updating existing word: "${newWordData.word}"`);
           // Word exists - merge the data
           const mergedData = mergeWordData(existingWord, newWordData, languageCodes);
           
           // Update the existing word
           const { success, message } = await updateWord(existingWord._id, mergedData);
           
+          console.log(`Update result - success: ${success}, message: ${message}`);
+          
           if (success) {
             successList.push({ 
               word: newWordData.word, 
               message: 'Updated with merged data' 
             });
+            wordIdMap.set(newWordData.word.toLowerCase().trim(), existingWord._id);
+            console.log(`✓ Word updated successfully`);
           } else {
             failedList.push({ 
               word: newWordData.word, 
               error: message || 'Failed to update' 
             });
+            console.log(`✗ Update failed: ${message}`);
           }
         } else {
+          console.log(`→ Adding new word: "${newWordData.word}"`);
           // Word doesn't exist - add it
           const wordData = {
             ...newWordData,
             language: languageCodes,
             translations: newWordData.translations || [],
+            description: newWordData.description || "", // Ensure description is always a string
+            example: newWordData.example || "",
           };
+          console.log('Word data to send:', JSON.stringify(wordData, null, 2));
+          
+          // Remove relatedWords from initial creation to avoid errors
+          delete wordData.relatedWords;
 
-          const { success, message } = await addWord(wordData);
-          if (success) {
+          console.log('Calling addWord...');
+          const response = await addWord(wordData);
+          console.log('addWord response:', JSON.stringify(response, null, 2));
+          
+          const { success, message, word: createdWord } = response || {};
+          console.log(`Destructured - success: ${success}, message: ${message}, createdWord:`, createdWord);
+          
+          if (success && createdWord) {
             successList.push({ word: wordData.word, message: 'Added successfully' });
+            wordIdMap.set(wordData.word.toLowerCase().trim(), createdWord._id);
+            console.log(`✓ Word added successfully, ID: ${createdWord._id}`);
           } else {
-            failedList.push({ word: wordData.word, error: message });
+            failedList.push({ word: wordData.word, error: message || 'Unknown error' });
+            console.log(`✗ Add failed: ${message}`);
           }
         }
       } catch (error) {
-        failedList.push({ word: newWordData.word, error: error.message });
+        console.error(`💥 EXCEPTION caught for word "${newWordData.word}":`, error);
+        console.error('Error stack:', error.stack);
+        console.error('Full data:', newWordData);
+        failedList.push({ 
+          word: newWordData.word, 
+          error: error.message || 'Unexpected error during import' 
+        });
       }
 
-      // Update progress
-      setProgress(((i + 1) / uniqueWords.length) * 100);
+      // Update progress (50% for word creation)
+      setProgress(((i + 1) / uniqueWords.length) * 50);
+    }
+
+    // PHASE 2: Process relationships (only if any words have relatedWords)
+    const relationshipsProcessed = [];
+    const relationshipsFailed = [];
+    const relationshipsSkipped = [];
+    
+    // Check if any words have relatedWords to process
+    const hasRelationships = uniqueWords.some(w => w.relatedWords && Array.isArray(w.relatedWords) && w.relatedWords.length > 0);
+    
+    if (hasRelationships) {
+      // Refresh the word store to include newly created words
+      await fetchWords();
+      
+      console.log('\n🔗 PHASE 2: Processing Relationships...');
+
+      for (let i = 0; i < uniqueWords.length; i++) {
+        const wordData = uniqueWords[i];
+        if (!wordData.relatedWords || !Array.isArray(wordData.relatedWords) || wordData.relatedWords.length === 0) {
+          continue;
+        }
+
+        console.log(`\n→ Processing relationships for: "${wordData.word}"`);
+        console.log(`  Found ${wordData.relatedWords.length} relationship(s)`);
+
+        const sourceWordId = wordIdMap.get(wordData.word.toLowerCase().trim());
+        if (!sourceWordId) {
+          console.log(`  ⚠️ Source word ID not found, skipping`);
+          continue; // Skip if source word wasn't created successfully
+        }
+
+        for (const relationship of wordData.relatedWords) {
+          // Support both "type" and "relationshipType" field names
+          const relationshipType = relationship.relationshipType || relationship.type;
+          
+          console.log(`  → Relationship: "${wordData.word}" -> "${relationship.word}" (${relationshipType})`);
+          
+          // Validate relationship structure
+          if (!relationship || !relationship.word || !relationshipType) {
+            console.log(`  ✗ Invalid structure`);
+            relationshipsFailed.push({
+              from: wordData.word,
+              to: relationship?.word || 'unknown',
+              error: 'Invalid relationship structure (missing word or type/relationshipType)'
+            });
+            continue;
+          }
+
+          const targetWordText = relationship.word.toLowerCase().trim();
+          let targetWordId = wordIdMap.get(targetWordText);
+          
+          // If not found in imported words, search the entire database
+          if (!targetWordId) {
+            console.log(`  → Target not in imported batch, searching database...`);
+            const allWords = useWordStore.getState().words;
+            const existingTargetWord = allWords.find(
+              w => w.word.toLowerCase().trim() === targetWordText
+            );
+            
+            if (existingTargetWord) {
+              targetWordId = existingTargetWord._id;
+              console.log(`  ✓ Found in database: ${targetWordId}`);
+            } else {
+              // Target word doesn't exist yet - skip but note for user
+              console.log(`  ⊗ Target word "${relationship.word}" not found in database - skipping`);
+              relationshipsSkipped.push({
+                from: wordData.word,
+                to: relationship.word,
+                type: relationshipType
+              });
+              continue;
+            }
+          } else {
+            console.log(`  ✓ Target found in imported batch`);
+          }
+
+          try {
+            console.log(`  → Creating relationship in database...`);
+            console.log(`     Source ID: ${sourceWordId}`);
+            console.log(`     Target ID: ${targetWordId}`);
+            console.log(`     Type: ${relationshipType}`);
+            
+            const result = await useWordStore.getState().addRelationship(
+              sourceWordId,
+              targetWordId,
+              relationshipType  // Only 3 parameters: sourceId, targetId, type
+            );
+            
+            if (result.success) {
+              console.log(`  ✓ Relationship created successfully`);
+              relationshipsProcessed.push({
+                from: wordData.word,
+                to: relationship.word,
+                type: relationshipType
+              });
+            } else {
+              console.log(`  ✗ Failed to create: ${result.message}`);
+              relationshipsFailed.push({
+                from: wordData.word,
+                to: relationship.word,
+                error: result.message || 'Failed to create relationship'
+              });
+            }
+          } catch (error) {
+            console.log(`  💥 Exception: ${error.message}`);
+            relationshipsFailed.push({
+              from: wordData.word,
+              to: relationship.word,
+              error: error.message
+            });
+          }
+        }
+
+        // Update progress (50-100% for relationships)
+        setProgress(50 + ((i + 1) / uniqueWords.length) * 50);
+      }
+    } else {
+      // No relationships to process, set progress to 100%
+      console.log('No relationships to process');
+      setProgress(100);
     }
 
     setResults({ success: successList, failed: failedList });
     setIsProcessing(false);
 
-    // Refresh the words list to get the latest data
-    await fetchWords();
+    // Build detailed message
+    let statusType = 'success';
+    let title = 'Import Completed Successfully';
+    let description = `${successList.length} word${successList.length !== 1 ? 's' : ''} imported successfully.`;
+    
+    // Only mention relationships if there were any to process
+    if (relationshipsProcessed.length > 0) {
+      description += ` ${relationshipsProcessed.length} relationship${relationshipsProcessed.length !== 1 ? 's' : ''} created.`;
+    }
+    
+    if (relationshipsSkipped.length > 0) {
+      description += ` ${relationshipsSkipped.length} relationship${relationshipsSkipped.length !== 1 ? 's' : ''} skipped (target words not in dictionary yet).`;
+      // Only change to warning if words were actually imported successfully
+      if (failedList.length === 0) {
+        statusType = 'warning';
+        title = 'Import Completed with Warnings';
+      }
+    }
+    
+    if (relationshipsFailed.length > 0) {
+      description += ` ${relationshipsFailed.length} relationship${relationshipsFailed.length !== 1 ? 's' : ''} failed.`;
+      if (failedList.length === 0) {
+        statusType = 'warning';
+        title = 'Import Completed with Warnings';
+      }
+    }
+    
+    // Word failures are more serious - override status
+    if (failedList.length > 0) {
+      const failedCount = failedList.length;
+      const totalCount = uniqueWords.length;
+      
+      if (failedCount === totalCount) {
+        // All words failed
+        statusType = 'error';
+        title = 'Import Failed';
+        description = `All ${failedCount} words failed to import.`;
+      } else {
+        // Some words failed
+        statusType = 'error';
+        title = 'Import Completed with Errors';
+        description = `${failedCount} of ${totalCount} words failed. ${successList.length} imported successfully.`;
+        
+        if (relationshipsProcessed.length > 0 || relationshipsSkipped.length > 0) {
+          const relMsg = [];
+          if (relationshipsProcessed.length > 0) relMsg.push(`${relationshipsProcessed.length} relationships created`);
+          if (relationshipsSkipped.length > 0) relMsg.push(`${relationshipsSkipped.length} skipped`);
+          if (relationshipsFailed.length > 0) relMsg.push(`${relationshipsFailed.length} failed`);
+          description += ` Relationships: ${relMsg.join(', ')}.`;
+        }
+      }
+    }
 
     toast({
-      title: 'Import Completed',
-      description: `${successList.length} words processed successfully, ${failedList.length} failed.`,
-      status: successList.length > 0 ? 'success' : 'error',
-      duration: 5000,
+      title,
+      description,
+      status: statusType,
+      duration: 7000,
       isClosable: true,
     });
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VStack, Button, HStack, useDisclosure, Container, Box } from '@chakra-ui/react';
 import { MdLink } from 'react-icons/md';
 import WordTitle from '../components/WordTitle';
@@ -8,9 +8,16 @@ import { useWordStore } from '../store/words';
 import { useNavigate } from 'react-router-dom';
 
 function DetailPage() {
-  const { selectedWord, setSelectedWord, words } = useWordStore();
+  const { selectedWord, setSelectedWord, words, fetchWords } = useWordStore();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // Fetch words when component mounts (in case user navigates directly to this page)
+  useEffect(() => {
+    if (words.length === 0) {
+      fetchWords();
+    }
+  }, [fetchWords, words.length]);
 
   console.log("selectedWord", selectedWord);
 

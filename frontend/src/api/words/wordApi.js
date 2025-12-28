@@ -26,7 +26,7 @@ export async function useAddWordEndpoint(word) {
         });
         return response.data;
     } catch (error) {
-        throw new new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
+        throw new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
     }
 }
 
@@ -38,7 +38,7 @@ export async function useDeleteWordEndpoint(wid) {
         const response = await axiosApi.delete(requestUrl);
         return response.data;
     } catch (error) {
-        throw new new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
+        throw new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
     }
 }
 
@@ -54,7 +54,7 @@ export async function useUpdateWordEndpoint(wid, word) {
         });
         return response.data;
     } catch (error) {
-        throw new new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
+        throw new Error(`${error.message} \n url=${requestUrl}\n`|| 'Failed to fetch words');
     }
 }
 

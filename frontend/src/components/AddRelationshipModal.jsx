@@ -161,7 +161,7 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
                 </Text>
               ) : (
                 <Text fontSize="sm" color="gray.500" mb={2}>
-                  {words.length} words available
+                  {filteredWords.length} words available (filtered from {words.length} total)
                 </Text>
               )}
               <Select
@@ -170,7 +170,7 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
                 onChange={(e) => setSelectedWordId(e.target.value)}
                 borderColor={borderColor}
                 maxH="200px"
-                isDisabled={words.length === 0}
+                isDisabled={words.length === 0 || filteredWords.length === 0}
               >
                 {filteredWords.length === 0 && words.length > 0 ? (
                   <option disabled>No words found</option>
@@ -188,9 +188,14 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
                   No words found matching "{searchTerm}". Try a different search term.
                 </Text>
               )}
-              {!searchTerm && words.length > 0 && filteredWords.length === 0 && (
+              {!searchTerm && words.length > 1 && filteredWords.length === 0 && (
                 <Text fontSize="sm" color="gray.500" mt={2}>
-                  No other words available
+                  All other words have been filtered out
+                </Text>
+              )}
+              {!searchTerm && words.length === 1 && (
+                <Text fontSize="sm" color="orange.500" mt={2}>
+                  No other words in database. Please add more words first.
                 </Text>
               )}
               {filteredWords.length >= 50 && (
