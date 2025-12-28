@@ -1,0 +1,23 @@
+[
+  {
+    "word": "example",
+    "meaning": "a thing characteristic of its kind",
+    "translations": ["ejemplo", "exemple", "Beispiel"],
+    "description": "Used to illustrate a general rule or principle.",
+    "example": "This painting is a good example of his early work. (EN) Ce tableau est un bon exemple de son travail précoce. (FR)"
+  },
+  {
+    "word": "hello",
+    "meaning": "a greeting",
+    "translations": ["hola", "bonjour", "hallo"],
+    "description": "Used as a greeting when meeting someone.",
+    "example": "Hello, how are you today? (EN) Bonjour, comment allez-vous aujourd'hui? (FR)"
+  },
+  {
+    "word": "test",
+    "meaning": "a procedure to assess quality or performance",
+    "translations": ["prueba", "test", "prüfung"],
+    "description": "An examination of something to determine its characteristics.",
+    "example": "We need to run a test to verify the results. (EN) Nous devons effectuer un test pour vérifier les résultats. (FR)"
+  }
+]

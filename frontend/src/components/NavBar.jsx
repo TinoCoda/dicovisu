@@ -7,12 +7,16 @@ import { LuSun } from "react-icons/lu";
 import { DiAptana } from "react-icons/di";
 import { IoMdLogOut } from "react-icons/io";
 import { IoMdLogIn } from "react-icons/io";
+import { MdUploadFile } from "react-icons/md";
 import { useAuthStore } from '../store/authStore';
 
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const roles = useAuthStore((state) => state.roles);
+  const isSuperAdmin = roles.includes('Admin') || roles.includes('superadmin');
+  
   return (
     <Container maxW="1140px" px={4} >
         <Flex h={16} 
@@ -41,6 +45,13 @@ const Navbar = () => {
                            <CiSquarePlus fontSize={20} />
                         </Button>
                     </Link>
+                    {isSuperAdmin && (
+                        <Link to={"/bulk-import"}>
+                            <Button colorScheme="purple" title="Bulk Import Words">
+                                <MdUploadFile fontSize={20} />
+                            </Button>
+                        </Link>
+                    )}
                     <Button onClick={toggleColorMode}>
                         {colorMode === "light" ? <LuSun fontSize={20} /> : <IoMoon fontSize={20} />}
                     </Button>

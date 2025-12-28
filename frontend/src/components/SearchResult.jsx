@@ -7,7 +7,7 @@ function combineTranslations(meaning, translations) {
   if (!translations || translations.length === 0) {
     return meaning;
   }
-  const translationTexts = translations.join(", ");
+  const translationTexts = translations.join(", "); // Add space after comma
   console.log("translationTexts", translationTexts);
   return `${meaning}, (${translationTexts})`;
 }

@@ -47,6 +47,11 @@ function WordContent({ selectedWord }) {
       <Text fontWeight="bold" fontSize="md">
         {selectedWord.meaning}
       </Text>
+      {selectedWord.translations && selectedWord.translations.length > 0 && (
+        <Text fontStyle="italic" color="gray.600">
+          Translations: {selectedWord.translations.join(', ')}
+        </Text>
+      )}
       <Text>
         {selectedWord.description !== '' ? selectedWord.description : 'ajoute une description...'}
       </Text>

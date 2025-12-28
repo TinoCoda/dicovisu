@@ -9,6 +9,7 @@ export const useAuthStore = create((set) => ({
     error: null,
     token: null,
     user:undefined, // Initialize user as undefined
+    roles: [], // Store user roles
  
     login: async ( username , password ) => {
         console.log("Attempting to log in with username/store:  ", username); // Debugging log
@@ -29,6 +30,7 @@ export const useAuthStore = create((set) => ({
                 set({ isAuthenticated: true, error: null });
                 set({ user: response.data.username }); // Store the user data in the state
                 set({ token: response.data.accessToken }); // Store the token in the state
+                set({ roles: response.data.roles || [] }); // Store user roles
                baseStore.getState().setToken(response.data.accessToken); // Update the global store
                 //accessToken=response.data.accessToken; // Update the global accessToken variable
             }
@@ -46,7 +48,7 @@ export const useAuthStore = create((set) => ({
             const response = await useLogoutEndpoint();
             if(response.status===200){
                 console.log("Logout successful");
-                set({ isAuthenticated: false, error: null,user:null ,token:null});
+                set({ isAuthenticated: false, error: null,user:null ,token:null, roles: [] });
             }
             
             return response; // Return the response for further use if needed
