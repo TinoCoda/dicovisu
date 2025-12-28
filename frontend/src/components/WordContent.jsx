@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text, VStack } from '@chakra-ui/react';
+import { Text, VStack, HStack, Link, Badge, Box, useColorModeValue } from '@chakra-ui/react';
 
-function WordContent({ selectedWord }) {
+function WordContent({ selectedWord, onWordClick }) {
   // Function to extract original text and translation pairs
   function extractTranslations(exampleString) {
     // Split on period, question mark, or exclamation mark
@@ -39,8 +39,32 @@ function WordContent({ selectedWord }) {
   // Prepare the content to display
   const translations = selectedWord?.example ? extractTranslations(selectedWord.example) : [];
 
+  // Relationship type labels and colors
+  const relationshipLabels = {
+    singular: 'Singular',
+    plural: 'Plural',
+    synonym: 'Synonym',
+    antonym: 'Antonym',
+    variant: 'Variant',
+    derived: 'Derived from',
+    see_also: 'See also'
+  };
+
+  const relationshipColors = {
+    singular: 'blue',
+    plural: 'blue',
+    synonym: 'green',
+    antonym: 'red',
+    variant: 'purple',
+    derived: 'orange',
+    see_also: 'gray'
+  };
+
+  const bgColor = useColorModeValue('gray.50', 'gray.700');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+
   return (
-    <VStack>
+    <VStack spacing={4} align="start" w="100%">
       <Text fontStyle="italic" align="left">
         Language(s): {selectedWord.language.join(', ')}
       </Text>
@@ -52,6 +76,34 @@ function WordContent({ selectedWord }) {
           Translations: {selectedWord.translations.join(', ')}
         </Text>
       )}
+
+      {/* Related Words Section */}
+      {selectedWord.relatedWords && selectedWord.relatedWords.length > 0 && (
+        <Box w="100%" mt={2} p={4} bg={bgColor} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
+          <Text fontWeight="bold" mb={3} fontSize="sm" color="gray.600">
+            Related Words:
+          </Text>
+          <VStack align="start" spacing={2}>
+            {selectedWord.relatedWords.map((related, index) => (
+              <HStack key={index} spacing={2}>
+                <Badge colorScheme={relationshipColors[related.relationshipType] || 'gray'}>
+                  {relationshipLabels[related.relationshipType] || related.relationshipType}
+                </Badge>
+                <Link
+                  color="teal.500"
+                  fontWeight="bold"
+                  onClick={() => onWordClick && onWordClick(related.wordId)}
+                  cursor="pointer"
+                  _hover={{ textDecoration: 'underline' }}
+                >
+                  {related.word}
+                </Link>
+              </HStack>
+            ))}
+          </VStack>
+        </Box>
+      )}
+
       <Text>
         {selectedWord.description !== '' ? selectedWord.description : 'ajoute une description...'}
       </Text>

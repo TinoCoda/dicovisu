@@ -83,3 +83,115 @@ export const searchWordStart = async (req, res) => {
     }
 };
 
+// Helper function to get reciprocal relationship type
+function getReciprocalType(type) {
+    const reciprocals = {
+        'singular': 'plural',
+        'plural': 'singular',
+        'synonym': 'synonym',
+        'antonym': 'antonym',
+        'variant': 'variant',
+        'derived': 'derived',
+        'see_also': 'see_also'
+    };
+    return reciprocals[type] || 'see_also';
+}
+
+// Add relationship between words (bidirectional)
+export const addWordRelationship = async (req, res) => {
+    try {
+        const { wordId } = req.params;
+        const { relatedWordId, relationshipType } = req.body;
+
+        // Validate ObjectIds
+        if (!mongoose.Types.ObjectId.isValid(wordId) || !mongoose.Types.ObjectId.isValid(relatedWordId)) {
+            return res.status(400).json({ success: false, message: "Invalid word ID" });
+        }
+
+        const word = await Word.findById(wordId);
+        const relatedWord = await Word.findById(relatedWordId);
+
+        if (!word || !relatedWord) {
+            return res.status(404).json({ success: false, message: "Word not found" });
+        }
+
+        // Prevent duplicate relationships
+        const existingRelationship = word.relatedWords?.find(
+            rw => rw.wordId.toString() === relatedWordId && rw.relationshipType === relationshipType
+        );
+
+        if (existingRelationship) {
+            return res.status(400).json({ success: false, message: "Relationship already exists" });
+        }
+
+        // Initialize relatedWords arrays if they don't exist
+        if (!word.relatedWords) word.relatedWords = [];
+        if (!relatedWord.relatedWords) relatedWord.relatedWords = [];
+
+        // Add relationship to the first word
+        word.relatedWords.push({
+            wordId: relatedWordId,
+            word: relatedWord.word,
+            relationshipType: relationshipType
+        });
+
+        // Add reciprocal relationship to the related word
+        const reciprocalType = getReciprocalType(relationshipType);
+        relatedWord.relatedWords.push({
+            wordId: wordId,
+            word: word.word,
+            relationshipType: reciprocalType
+        });
+
+        await word.save();
+        await relatedWord.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Relationship added successfully",
+            data: { word, relatedWord }
+        });
+    } catch (error) {
+        console.error("Error in addWordRelationship:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Remove relationship between words (bidirectional)
+export const removeWordRelationship = async (req, res) => {
+    try {
+        const { wordId, relatedWordId } = req.params;
+
+        // Validate ObjectIds
+        if (!mongoose.Types.ObjectId.isValid(wordId) || !mongoose.Types.ObjectId.isValid(relatedWordId)) {
+            return res.status(400).json({ success: false, message: "Invalid word ID" });
+        }
+
+        const word = await Word.findById(wordId);
+        const relatedWord = await Word.findById(relatedWordId);
+
+        if (!word || !relatedWord) {
+            return res.status(404).json({ success: false, message: "Word not found" });
+        }
+
+        // Remove from both sides
+        word.relatedWords = word.relatedWords?.filter(
+            rw => rw.wordId.toString() !== relatedWordId
+        ) || [];
+        
+        relatedWord.relatedWords = relatedWord.relatedWords?.filter(
+            rw => rw.wordId.toString() !== wordId
+        ) || [];
+
+        await word.save();
+        await relatedWord.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Relationship removed successfully" 
+        });
+    } catch (error) {
+        console.error("Error in removeWordRelationship:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

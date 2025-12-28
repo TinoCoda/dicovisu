@@ -4,7 +4,9 @@ import {    useAddWordEndpoint,
             useFetchWordsEndpoint, 
             useDeleteWordEndpoint,
             useUpdateWordEndpoint, 
-            useSearchWordEndpoint 
+            useSearchWordEndpoint,
+            useAddRelationshipEndpoint,
+            useRemoveRelationshipEndpoint
         } from '../api/words/wordApi';
 
 
@@ -180,6 +182,69 @@ export const useWordStore =create((set) => ({
     setWrappedSearchResults: (wrappedSearchResults) => {
         localStorage.setItem('wrappedSearchResults', JSON.stringify(wrappedSearchResults))
         set({wrappedSearchResults})
+    },
+
+    // Add relationship between words
+    addRelationship: async (wordId, relatedWordId, relationshipType) => {
+        try {
+            const response = await useAddRelationshipEndpoint(wordId, relatedWordId, relationshipType);
+            
+            if (!response.success) {
+                return { success: false, message: response.message };
+            }
+
+            // Update both words in the store
+            set((state) => ({
+                words: state.words.map((w) => {
+                    if (w._id === wordId) {
+                        return response.data.word;
+                    }
+                    if (w._id === relatedWordId) {
+                        return response.data.relatedWord;
+                    }
+                    return w;
+                }),
+                // Update selectedWord if it's one of the affected words
+                selectedWord: state.selectedWord?._id === wordId 
+                    ? response.data.word 
+                    : state.selectedWord?._id === relatedWordId 
+                        ? response.data.relatedWord 
+                        : state.selectedWord
+            }));
+
+            return { success: true, message: 'Relationship added successfully' };
+        } catch (error) {
+            console.error('Error adding relationship:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    // Remove relationship between words
+    removeRelationship: async (wordId, relatedWordId) => {
+        try {
+            const response = await useRemoveRelationshipEndpoint(wordId, relatedWordId);
+            
+            if (!response.success) {
+                return { success: false, message: response.message };
+            }
+
+            // Refresh words to get updated data
+            const wordsResponse = await useFetchWordsEndpoint();
+            const sortedWords = wordsResponse.data.sort((a, b) => a.word.localeCompare(b.word));
+            
+            set((state) => ({
+                words: sortedWords,
+                // Update selectedWord if it's one of the affected words
+                selectedWord: state.selectedWord?._id === wordId || state.selectedWord?._id === relatedWordId
+                    ? sortedWords.find(w => w._id === state.selectedWord._id)
+                    : state.selectedWord
+            }));
+
+            return { success: true, message: 'Relationship removed successfully' };
+        } catch (error) {
+            console.error('Error removing relationship:', error);
+            return { success: false, message: error.message };
+        }
     },
 
 

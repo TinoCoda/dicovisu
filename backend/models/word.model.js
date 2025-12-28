@@ -25,6 +25,25 @@ const wordSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    
+    // Related words with relationship types
+    relatedWords: [{
+        wordId: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Word' 
+        },
+        word: { 
+            type: String,
+            required: true
+        },
+        relationshipType: { 
+            type: String, 
+            enum: ['singular', 'plural', 'synonym', 'antonym', 'variant', 'derived', 'see_also'],
+            required: true
+        }
+    }]
+}, {
+    timestamps: true
 });
 
 const Word = mongoose.model("Word", wordSchema);

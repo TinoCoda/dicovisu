@@ -68,4 +68,37 @@ export async function useSearchWordEndpoint(searchTerm) {
     }
 }
 
+// Add relationship between words
+export async function useAddRelationshipEndpoint(wordId, relatedWordId, relationshipType) {
+    const requestUrl = `${API_BASE_URL}/words/${wordId}/relationships`;
+    console.log('Adding relationship:', { wordId, relatedWordId, relationshipType, requestUrl });
+    try {
+        const response = await axiosApi.post(requestUrl, {
+            relatedWordId,
+            relationshipType
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Add relationship response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Add relationship error:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || 'Failed to add relationship');
+    }
+}
+
+// Remove relationship between words
+export async function useRemoveRelationshipEndpoint(wordId, relatedWordId) {
+    const requestUrl = `${API_BASE_URL}/words/${wordId}/relationships/${relatedWordId}`;
+    try {
+        const response = await axiosApi.delete(requestUrl);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to remove relationship');
+    }
+}
+
+
 
