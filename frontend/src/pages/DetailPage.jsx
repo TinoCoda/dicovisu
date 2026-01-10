@@ -19,6 +19,13 @@ function DetailPage() {
     }
   }, [fetchWords, words.length]);
 
+  // Log when selectedWord changes to verify reactivity
+  useEffect(() => {
+    console.log("🔄 selectedWord changed to:", selectedWord?.word, selectedWord?._id);
+    // Scroll to top when word changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [selectedWord]);
+
   console.log("selectedWord", selectedWord);
 
   const handleEdit = () => {
@@ -26,15 +33,28 @@ function DetailPage() {
   };
 
   const handleWordClick = (wordId) => {
+    console.log('🔵 Clicking on related word with ID:', wordId);
+    console.log('📊 Current words in store:', words.length);
+    
     const word = words.find(w => w._id === wordId);
     if (word) {
+      console.log('✅ Found word:', word.word);
+      console.log('📝 Word details:', {
+        _id: word._id,
+        word: word.word,
+        meaning: word.meaning,
+        relatedWordsCount: word.relatedWords?.length || 0
+      });
       setSelectedWord(word);
+    } else {
+      console.error('❌ Word not found with ID:', wordId);
+      console.error('Available word IDs:', words.map(w => w._id));
     }
   };
 
   return (
     <Container maxW="container.md" centerContent py={8}>
-      <VStack spacing={6} align="center" w="100%">
+      <VStack spacing={6} align="center" w="100%" key={selectedWord?._id}>
         {/* Word Title - Centered */}
         <Box textAlign="center">
           <WordTitle word={selectedWord.word} />

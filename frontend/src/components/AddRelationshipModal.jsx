@@ -91,7 +91,8 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
         isClosable: true,
       });
       
-      // Refresh words to get updated data
+      // Note: The store's addRelationship function already updates both words and selectedWord
+      // Fetch words to ensure we have the latest data for all words
       await fetchWords();
       
       // Reset form

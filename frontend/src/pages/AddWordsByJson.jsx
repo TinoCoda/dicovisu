@@ -30,7 +30,7 @@ function AddWordsByJson() {
   const [wordsData, setWordsData] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState({ success: [], failed: [] });
+  const [results, setResults] = useState({ success: [], failed: [], duplicates: [] });
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -115,9 +115,10 @@ function AddWordsByJson() {
 
   const removeDuplicates = (words) => {
     const uniqueWords = [];
-    const seenWords = new Set();
+    const seenWords = new Map(); // Changed to Map to track first occurrence
+    const duplicatesFound = [];
 
-    words.forEach((wordObj) => {
+    words.forEach((wordObj, index) => {
       // Skip invalid word objects
       if (!wordObj || !wordObj.word || !wordObj.meaning) {
         console.warn('Skipping invalid word object in removeDuplicates:', wordObj);
@@ -125,21 +126,47 @@ function AddWordsByJson() {
       }
       
       const key = `${wordObj.word}-${wordObj.meaning}`.toLowerCase();
+      
       if (!seenWords.has(key)) {
-        seenWords.add(key);
+        seenWords.set(key, { word: wordObj, index });
         uniqueWords.push(wordObj);
+      } else {
+        // This is a duplicate - track it
+        const firstOccurrence = seenWords.get(key);
+        duplicatesFound.push({
+          duplicate: {
+            word: wordObj.word,
+            meaning: wordObj.meaning,
+            description: wordObj.description,
+            translations: wordObj.translations,
+            example: wordObj.example,
+            position: index + 1 // 1-based position in file
+          },
+          original: {
+            word: firstOccurrence.word.word,
+            meaning: firstOccurrence.word.meaning,
+            description: firstOccurrence.word.description,
+            translations: firstOccurrence.word.translations,
+            example: firstOccurrence.word.example,
+            position: firstOccurrence.index + 1
+          },
+          suggestion: {
+            action: "Duplicate entry in JSON file",
+            reason: "Same word and meaning appear multiple times in the import file"
+          }
+        });
       }
     });
 
-    return uniqueWords;
+    return { uniqueWords, duplicatesFound };
   };
 
   const mergeWordData = (existingWord, newWordData, languageCodes) => {
     // Merge descriptions - append if new description is different
     let mergedDescription = existingWord.description || '';
     if (newWordData.description && newWordData.description !== existingWord.description) {
-      mergedDescription = mergedDescription 
-        ? `${mergedDescription}\n\n${newWordData.description}` 
+      mergedDescription = newWordData.description
+        ? `\n${newWordData.description}` 
         : newWordData.description;
     }
 
@@ -178,6 +205,32 @@ function AddWordsByJson() {
     };
   };
 
+  // Export duplicates to JSON file for download
+  const exportDuplicatesToJson = (duplicatesList) => {
+    const exportData = {
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        totalDuplicates: duplicatesList.length,
+        description: "Words that already exist in the database. Review to potentially add as synonyms, variants, or relationships."
+      },
+      duplicates: duplicatesList
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `duplicates-review-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`📄 Exported ${duplicatesList.length} duplicates to JSON file`);
+  };
+
   const handleImport = async () => {
     if (!selectedFile || wordsData.length === 0) {
       toast({
@@ -203,15 +256,15 @@ function AddWordsByJson() {
 
     setIsProcessing(true);
     setProgress(0);
-    setResults({ success: [], failed: [] });
+    setResults({ success: [], failed: [], duplicates: [] });
 
-    // Remove duplicates from the import file
-    const uniqueWords = removeDuplicates(wordsData);
+    // Remove duplicates from the import file and track them
+    const { uniqueWords, duplicatesFound } = removeDuplicates(wordsData);
     const languageCodes = selectedLanguages.map((lang) => lang.value);
 
     toast({
       title: 'Import Started',
-      description: `Processing ${uniqueWords.length} unique words (removed ${wordsData.length - uniqueWords.length} duplicates).`,
+      description: `Processing ${uniqueWords.length} unique words (found ${duplicatesFound.length} duplicates in JSON file).`,
       status: 'info',
       duration: 3000,
       isClosable: true,
@@ -256,6 +309,7 @@ function AddWordsByJson() {
       try {
         if (existingWord) {
           console.log(`→ Updating existing word: "${newWordData.word}"`);
+          
           // Word exists - merge the data
           const mergedData = mergeWordData(existingWord, newWordData, languageCodes);
           
@@ -443,13 +497,23 @@ function AddWordsByJson() {
       setProgress(100);
     }
 
-    setResults({ success: successList, failed: failedList });
+    setResults({ success: successList, failed: failedList, duplicates: duplicatesFound });
     setIsProcessing(false);
+
+    // Export duplicates to JSON file if any were found
+    if (duplicatesFound.length > 0) {
+      exportDuplicatesToJson(duplicatesFound);
+    }
 
     // Build detailed message
     let statusType = 'success';
     let title = 'Import Completed Successfully';
     let description = `${successList.length} word${successList.length !== 1 ? 's' : ''} imported successfully.`;
+    
+    // Mention duplicates if found in JSON file
+    if (duplicatesFound.length > 0) {
+      description += ` ${duplicatesFound.length} duplicate${duplicatesFound.length !== 1 ? 's' : ''} found in JSON file (exported for review).`;
+    }
     
     // Only mention relationships if there were any to process
     if (relationshipsProcessed.length > 0) {
@@ -636,7 +700,7 @@ function AddWordsByJson() {
           </Box>
         )}
 
-        {(results.success.length > 0 || results.failed.length > 0) && (
+        {(results.success.length > 0 || results.failed.length > 0 || results.duplicates.length > 0) && (
           <Box>
             {results.success.length > 0 && (
               <Box mb={4}>
@@ -647,7 +711,30 @@ function AddWordsByJson() {
                   {results.success.map((item, index) => (
                     <ListItem key={index}>
                       <ListIcon as={MdCheckCircle} color="green.500" />
-                      {item.word}
+                      {item.word} - {item.message}
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+
+            {results.duplicates.length > 0 && (
+              <Box mb={4}>
+                <Alert status="warning">
+                  <AlertIcon />
+                  <Box flex="1">
+                    <AlertTitle>Duplicates in JSON File ({results.duplicates.length})</AlertTitle>
+                    <AlertDescription>
+                      {results.duplicates.length} word{results.duplicates.length !== 1 ? 's' : ''} appear multiple times in your JSON file. 
+                      A JSON file has been downloaded for you to review these duplicates.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+                <List spacing={2} maxH="200px" overflowY="auto" mt={2}>
+                  {results.duplicates.map((item, index) => (
+                    <ListItem key={index}>
+                      <ListIcon as={MdCheckCircle} color="orange.500" />
+                      {item.duplicate.word} (appears at positions {item.original.position} and {item.duplicate.position})
                     </ListItem>
                   ))}
                 </List>

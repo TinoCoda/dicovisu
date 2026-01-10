@@ -111,7 +111,21 @@ export const useWordStore =create((set) => ({
             const pData = data.data.sort((a, b) => a.word.localeCompare(b.word));
             localStorage.setItem('words',JSON.stringify(pData));
     
-            set({words: pData})
+            set((state) => {
+                // Update selectedWord if it exists, to keep it in sync with fetched data
+                const updatedSelectedWord = state.selectedWord 
+                    ? pData.find(w => w._id === state.selectedWord._id) || state.selectedWord
+                    : null;
+                
+                if (updatedSelectedWord && updatedSelectedWord !== state.selectedWord) {
+                    localStorage.setItem('selectedWord', JSON.stringify(updatedSelectedWord));
+                }
+                
+                return {
+                    words: pData,
+                    selectedWord: updatedSelectedWord
+                };
+            });
             
             console.log("fetchWords called");
             console.log(data.data);
