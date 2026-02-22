@@ -70,7 +70,8 @@ export const searchWordStart = async (req, res) => {
         const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
         const meanings = await Word.find({ meaning: { $regex: `^${word}`, $options: "i" } });
         const translations = await Word.find({ translations: { $regex: `^${word}`, $options: "i" } });
-        const combinedResults = [...words, ...meanings, ...translations];
+        const examples= await Word.find({ example: { $regex: `^${word}`, $options: "i" } });
+        const combinedResults = [...words, ...meanings, ...translations, ...examples];
        
         const uniqueResults = Array.from(new Set(combinedResults.map((w) => w._id.toString()))).map((id) =>
             combinedResults.find((w) => w._id.toString() === id)
@@ -92,7 +93,8 @@ function getReciprocalType(type) {
         'antonym': 'antonym',
         'variant': 'variant',
         'derived': 'derived',
-        'see_also': 'see_also'
+        'see_also': 'see_also',
+        'infinitive': 'infinitive'
     };
     return reciprocals[type] || 'see_also';
 }
@@ -115,18 +117,17 @@ export const addWordRelationship = async (req, res) => {
             return res.status(404).json({ success: false, message: "Word not found" });
         }
 
-        // Prevent duplicate relationships
-        const existingRelationship = word.relatedWords?.find(
-            rw => rw.wordId.toString() === relatedWordId && rw.relationshipType === relationshipType
-        );
-
-        if (existingRelationship) {
-            return res.status(400).json({ success: false, message: "Relationship already exists" });
-        }
-
         // Initialize relatedWords arrays if they don't exist
         if (!word.relatedWords) word.relatedWords = [];
         if (!relatedWord.relatedWords) relatedWord.relatedWords = [];
+
+        // Remove any existing relationship between these words (to overwrite)
+        word.relatedWords = word.relatedWords.filter(
+            rw => rw.wordId.toString() !== relatedWordId
+        );
+        relatedWord.relatedWords = relatedWord.relatedWords.filter(
+            rw => rw.wordId.toString() !== wordId
+        );
 
         // Add relationship to the first word
         word.relatedWords.push({

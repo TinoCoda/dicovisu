@@ -38,7 +38,7 @@ const wordSchema = new mongoose.Schema({
         },
         relationshipType: { 
             type: String, 
-            enum: ['singular', 'plural', 'synonym', 'antonym', 'variant', 'derived', 'see_also'],
+            enum: ['singular', 'plural', 'synonym', 'antonym', 'variant', 'derived', 'see_also', 'infinitive'],
             required: true
         }
     }]

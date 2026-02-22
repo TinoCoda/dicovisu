@@ -47,7 +47,8 @@ function WordContent({ selectedWord, onWordClick }) {
     antonym: 'Antonym',
     variant: 'Variant',
     derived: 'Derived from',
-    see_also: 'See also'
+    see_also: 'See also',
+    infinitive: 'Infinitive'
   };
 
   const relationshipColors = {
@@ -57,7 +58,8 @@ function WordContent({ selectedWord, onWordClick }) {
     antonym: 'red',
     variant: 'purple',
     derived: 'orange',
-    see_also: 'gray'
+    see_also: 'gray',
+    infinitive: 'teal'
   };
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');

@@ -141,6 +141,7 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
                 <option value="variant">Variant</option>
                 <option value="derived">Derived from</option>
                 <option value="see_also">See also</option>
+                <option value="infinitive">Infinitive</option>
               </Select>
             </FormControl>
 
