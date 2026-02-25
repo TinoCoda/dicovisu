@@ -78,9 +78,13 @@ const StatisticsPage = () => {
       
       if (response.success) {
         setStatistics(response.data);
-        // Select the first language by default
+        // Auto-select the language with the most dictionary entries
         if (response.data.byLanguage.length > 0) {
-          setSelectedLanguage(response.data.byLanguage[0]);
+          const dominant = response.data.byLanguage.reduce((max, lang) =>
+            lang.totalDictionaryWords > max.totalDictionaryWords ? lang : max,
+            response.data.byLanguage[0]
+          );
+          setSelectedLanguage(dominant);
         }
       }
     } catch (error) {
@@ -201,7 +205,13 @@ const StatisticsPage = () => {
         <Box>
           <Heading size="lg" mb={4}>Statistics by Language</Heading>
           
-          <Tabs variant="enclosed" colorScheme="blue">
+          <Tabs
+            variant="enclosed"
+            colorScheme="blue"
+            defaultIndex={statistics.byLanguage.reduce((maxIdx, lang, idx, arr) =>
+              lang.totalDictionaryWords > arr[maxIdx].totalDictionaryWords ? idx : maxIdx, 0
+            )}
+          >
             <TabList flexWrap="wrap">
               {statistics.byLanguage.map((lang) => (
                 <Tab key={lang.languageCode} onClick={() => setSelectedLanguage(lang)}>
