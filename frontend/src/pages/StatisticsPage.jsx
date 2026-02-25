@@ -41,6 +41,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useGetStatisticsEndpoint } from '../api/words/wordApi';
+import { useWordStore } from '../store/words';
 
 const StatisticsPage = () => {
   const [statistics, setStatistics] = useState(null);
@@ -50,6 +51,7 @@ const StatisticsPage = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { words, setSelectedWord } = useWordStore();
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
@@ -99,6 +101,27 @@ const StatisticsPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMissingWordClick = (missingWord) => {
+    // Find all words whose example contains this word (case-insensitive)
+    const candidates = words.filter(w =>
+      w.example && new RegExp(`\\b${missingWord}\\b`, 'i').test(w.example)
+    );
+    if (candidates.length === 0) {
+      toast({
+        title: 'No example found',
+        description: `No word entry has "${missingWord}" in its example.`,
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    // Pick a random one among the candidates
+    const randomWord = candidates[Math.floor(Math.random() * candidates.length)];
+    setSelectedWord(randomWord);
+    navigate('/details');
   };
 
   const calculateCoverage = (lang) => {
@@ -398,7 +421,19 @@ const StatisticsPage = () => {
                                   {lang.topMissingWords.map((item, idx) => (
                                     <Tr key={idx}>
                                       <Td>{idx + 1}</Td>
-                                      <Td fontWeight="medium" color="orange.500">{item.word}</Td>
+                                      <Td>
+                                        <Text
+                                          fontWeight="medium"
+                                          color="orange.400"
+                                          cursor="pointer"
+                                          textDecoration="underline"
+                                          _hover={{ color: 'orange.600' }}
+                                          onClick={() => handleMissingWordClick(item.word)}
+                                          title={`Click to see an example containing "${item.word}"`}
+                                        >
+                                          {item.word}
+                                        </Text>
+                                      </Td>
                                       <Td isNumeric>
                                         <Badge colorScheme="orange">{item.count}</Badge>
                                       </Td>
