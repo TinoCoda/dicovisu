@@ -100,5 +100,16 @@ export async function useRemoveRelationshipEndpoint(wordId, relatedWordId) {
     }
 }
 
+// Get dictionary statistics
+export async function useGetStatisticsEndpoint() {
+    const requestUrl = `${API_BASE_URL}/words/statistics`;
+    try {
+        const response = await axiosApi.get(requestUrl);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch statistics');
+    }
+}
+
 
 

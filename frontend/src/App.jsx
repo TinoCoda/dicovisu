@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage'
 import EditWordPage from './pages/EditWordPage'
 import LogoutPage from './pages/LogoutPage'
 import AddWordsByJson from './pages/AddWordsByJson'
+import StatisticsPage from './pages/StatisticsPage'
 
 
 
@@ -33,6 +34,7 @@ function App() {
         <Route path="/edit-word/:id" element={<EditWordPage />} />
         <Route path='/languages' element={<AddNewLANG/>} />
         <Route path='/bulk-import' element={<AddWordsByJson/>} />
+        <Route path='/statistics' element={<StatisticsPage/>} />
         <Route path='/logout' element={<LogoutPage/>} />
         
       </Routes>

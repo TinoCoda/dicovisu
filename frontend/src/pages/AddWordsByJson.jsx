@@ -170,14 +170,19 @@ function AddWordsByJson() {
         : newWordData.description;
     }
 
-    // Merge examples - append if new example is different
+    // Helper function to clean example text for comparison
+    const cleanExample = (example) => {
+      return example.trim().replace(/\n/g, '').toLowerCase();
+    };
+
+    // Merge examples - only add if unique after cleaning
     let mergedExample = existingWord.example || '';
     if (newWordData.example) {
-      // Normalize and compare examples (trim whitespace, case-insensitive)
-      const existingNormalized = (existingWord.example || '').toLowerCase().trim();
-      const newNormalized = newWordData.example.toLowerCase().trim();
+      const newExampleCleaned = cleanExample(newWordData.example);
+      const existingExamplesCleaned = cleanExample(existingWord.example || '');
       
-      if (existingNormalized !== newNormalized) {
+      // Check if the cleaned new example is already included in the cleaned existing examples
+      if (!existingExamplesCleaned.includes(newExampleCleaned)) {
         mergedExample = mergedExample 
           ? `${mergedExample} ${newWordData.example}` 
           : newWordData.example;

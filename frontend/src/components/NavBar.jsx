@@ -8,6 +8,7 @@ import { DiAptana } from "react-icons/di";
 import { IoMdLogOut } from "react-icons/io";
 import { IoMdLogIn } from "react-icons/io";
 import { MdUploadFile } from "react-icons/md";
+import { IoStatsChart } from "react-icons/io5";
 import { useAuthStore } from '../store/authStore';
 
 
@@ -49,6 +50,13 @@ const Navbar = () => {
                         <Link to={"/bulk-import"}>
                             <Button colorScheme="purple" title="Bulk Import Words">
                                 <MdUploadFile fontSize={20} />
+                            </Button>
+                        </Link>
+                    )}
+                    {isAuthenticated && (
+                        <Link to={"/statistics"}>
+                            <Button colorScheme="teal" title="Dictionary Statistics">
+                                <IoStatsChart fontSize={20} />
                             </Button>
                         </Link>
                     )}

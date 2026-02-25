@@ -7,7 +7,8 @@ import {
     updateWord,
     searchWordStart,
     addWordRelationship,
-    removeWordRelationship
+    removeWordRelationship,
+    getStatistics
 } from '../controllers/word.controller.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get('/', getWords);
 router.put('/:id', updateWord);
 router.delete('/:id', deleteWord);
 router.get('/search',searchWordStart);
+router.get('/statistics', getStatistics);
 
 // Word relationship routes
 router.post('/:wordId/relationships', addWordRelationship);
