@@ -1,10 +1,56 @@
 import mongoose from "mongoose";
 import Word from "../models/word.model.js";
 
+const deduplicateSentences = (text) => {
+    if (!text) return '';
+
+    // Match sentences ending with . ! or ? (keeping the punctuation)
+    const sentenceRegex = /[^.!?]+[.!?]/g;
+    const sentences = text.match(sentenceRegex) || [];
+    console.log(sentences)
+
+    // Deduplicate case-insensitively but keep original casing
+    const seen = new Set();
+    const uniqueSentences = sentences.filter(sentence => {
+        const key = sentence.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    // Join back with a space
+    return uniqueSentences.map(s => s.trim()).join('\n');
+};
+
 export const getWords = async (req, res) => {
     try {
         const words = await Word.find();
         const size=words.length;
+
+
+        words.forEach(word => {
+            if(word.example){
+                const originalExample = word.example;   
+                const deduplicatedExample = deduplicateSentences(originalExample);
+                if (originalExample !== deduplicatedExample) {
+                    //console.log(`Deduplicated example for word "${word.word}":\n${deduplicatedExample}\n---`);
+                    word.example = deduplicatedExample;
+                    //word.save().catch(err => console.error(`Error saving deduplicated example for word "${word.word}":`, err));
+                    // update the word in the database with the deduplicated example
+                    updateWord({ params: { id: word._id }, body: word }, {
+                        status: (code) => ({
+                            json: (data) => {
+                                if (code === 200) {
+                                    console.log(`Successfully updated word "${word.word}" with deduplicated example.`);
+                                } else {
+                                    console.error(`Failed to update word "${word.word}". Status code: ${code}, Response:`, data);
+                                }
+                            }
+                        })
+                    });
+                }
+            }
+        });
         res.status(200).json({size:size,data:words});
     } catch (error) {
         res.status(500).json({ succes: false,message: error.message });
@@ -16,6 +62,7 @@ export const addWord = async (req, res) => {
     if(!word.word || !word.meaning || !word.language){
         res.status(400).json({ succes:false,message: "Please fill all required fields" });
     }
+
     const newWord = new Word(word);
     try {
         await newWord.save();
