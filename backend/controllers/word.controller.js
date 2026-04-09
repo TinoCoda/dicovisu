@@ -7,7 +7,7 @@ const deduplicateSentences = (text) => {
     // Match sentences ending with . ! or ? (keeping the punctuation)
     const sentenceRegex = /[^.!?]+[.!?]/g;
     const sentences = text.match(sentenceRegex) || [];
-    console.log(sentences)
+    //console.log(sentences)
 
     // Deduplicate case-insensitively but keep original casing
     const seen = new Set();
@@ -261,17 +261,17 @@ export const getStatistics = async (req, res) => {
             // Split into lines and keep ONLY dialect lines (those that contain H followed by digits)
             // Each dialect line looks like: "Muana wu musakana(H131)." 
             // The French translation lines do NOT contain H-numbers
-            console.log("Extracting words from example text:\n", text);
-            console.log(`. count: ${text.countOccurrences('.')} | \\n count: ${text.countOccurrences('\n')}`);
+            //console.log("Extracting words from example text:\n", text);
+            //console.log(`. count: ${text.countOccurrences('.')} | \\n count: ${text.countOccurrences('\n')}`);
             if(!/\n/.test(text)){
-                console.log("No line breaks found, fixing text by replacing '. ' with '.\n'");
+               // console.log("No line breaks found, fixing text by replacing '. ' with '.\n'");
                 text = text.replace(".", '.\n').trim();
-                console.log("Fixed example text for the typical case:\n", text);
+                //console.log("Fixed example text for the typical case:\n", text);
             }else if(text.countOccurrences('.') > text.countOccurrences('\n')){ // if there are more points then line breaks, make sure to fix it as well
-                console.log("More '.' than line breaks, fixing text by replacing '. ' with '.\n'");    
+                //console.log("More '.' than line breaks, fixing text by replacing '. ' with '.\n'");    
                 text = text.replace('\n', '').trim(); // replace all occurences of ". " with ".\n"
                 text = text.replace(/\. /g, '.\n').trim(); // replace all occurences of ". " with ".\n"
-                console.log("Fixed example text for special case:\n", text);
+                //console.log("Fixed example text for special case:\n", text);
                 
 
             }
@@ -375,28 +375,31 @@ export const getStatistics = async (req, res) => {
         });
 
         // ── DEBUG LOGS ──────────────────────────────────────────────
+        /* 
         console.log('\n===== STATISTICS DEBUG =====');
         console.log('> dictionaryWordsMap has "muana"?', dictionaryWordsMap.has('muana'));
-        console.log('> dictionaryWordsMap "muana" value:', dictionaryWordsMap.get('muana'));
+        console.log('> dictionaryWordsMap "muana" value:', dictionaryWordsMap.get('muana'));*/
 
         // Show every H131 word entry whose example contains "muana" and what extractWords returns
         const h131Words = words.filter(w => w.language.includes('H131') && w.example && /muana/i.test(w.example));
         console.log(`\n> H131 words with "muana" in example: ${h131Words.length}`);
         h131Words.slice(0, 5).forEach(w => {
             const extracted = extractWords(w.example);
+         /* 
             console.log(`  word="${w.word}"`);
             console.log(`  raw example (first 120): ${w.example.substring(0, 120).replace(/\n/g, '\\n')}`);
             console.log(`  extracted tokens:`, extracted);
             console.log(`  "muana" in tokens?`, extracted.includes('muana'));
-            console.log('  ---');
+            console.log('  ---');*/
         });
 
         const h131Stats = languageStats['H131'];
         if (h131Stats) {
+            /*
             console.log('\n> H131 dictionaryWordsInExamples has "muana"?', h131Stats.dictionaryWordsInExamples.has('muana'));
             console.log('> H131 exampleWords has "muana"?', h131Stats.exampleWords.has('muana'));
             console.log('> H131 exampleWords "muana" count:', h131Stats.exampleWords.get('muana'));
-            console.log('\n> Top 10 H131 exampleWords:');
+            console.log('\n> Top 10 H131 exampleWords:');*/
             Array.from(h131Stats.exampleWords.entries())
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10)

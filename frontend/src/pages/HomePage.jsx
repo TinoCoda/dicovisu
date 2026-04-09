@@ -34,7 +34,7 @@ const HomePage = () => {
  
 
   useEffect(() => {
-    login("tinotech", "dev-me")
+    // login("tinotech", "dev-me")
 
     refresh(); // Refresh authentication status
 
@@ -90,15 +90,7 @@ const HomePage = () => {
       setEntriesCount(0);
 
     }
-    /*
-    console.log("Selected language code:", languageCode);
 
-    const filteredWords = words.filter((word) => word.language === languageCode);
-    console.log("Selected language Filtered words:", filteredWords);
-    setWrappedWords(filteredWords);
-    const filteredSearchResults = searchResults.filter((word) => word.language === languageCode);
-    console.log("Selected language Filtered search results:", filteredSearchResults);
-    setWrappedSearchResults(filteredSearchResults);*/
   };
 
   return (

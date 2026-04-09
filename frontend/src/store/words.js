@@ -191,11 +191,21 @@ export const useWordStore =create((set) => ({
             console.log(data.success);
             console.log(data);
             if(!data.success) return {success:false,message:data.message};
-            const sortedData = data.data.sort((a, b) => a.word.localeCompare(b.word));
+            // split data.data into two arrays: one for words that match with the search term and another for words that have example or description that match with the search term. Then concatenate the two arrays with the first array coming first.
+            const matchedWords = data.data.filter((word) => word.word.toLowerCase().includes(query.toLowerCase()));
+            const otherWords = data.data.filter((word) => matchedWords.indexOf(word) === -1);
+            const matchedWordsSorted = matchedWords.sort((a, b) => a.word.localeCompare(b.word));
+            const otherWordsSorted = otherWords.sort((a, b) => a.word.localeCompare(b.word));
+            console.log("bug - matchedWordsSorted", matchedWordsSorted);
+            console.log("bug - matchedWords", matchedWords);
+            console.log("bug - otherWordsSorted", otherWordsSorted);
+            console.log("bug - otherWords", otherWords);
+            const sortedData = [...matchedWordsSorted, ...otherWordsSorted];
+            console.log("bug - sortedData", sortedData);
     
             set({words: sortedData});
             //console.log(words);
-            return {success:true,message:'Word found',data:data.data};
+            return {success:true,message:'Word found',data: sortedData};
 
         }catch(error){
             const regexQuery=`^${query}`

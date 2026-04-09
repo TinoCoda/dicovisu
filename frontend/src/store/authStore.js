@@ -59,7 +59,7 @@ export const useAuthStore = create((set) => ({
     },
 
     refresh: async () => {
-        const setAccessToken = useGlobalStore.getState().setToken; // Get the setAccessToken function from global store
+        const setAccessToken = baseStore.getState().setToken; // Get the setAccessToken function from global store
         
         try {
             const response = await useRefreshEndpoint();
