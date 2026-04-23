@@ -60,7 +60,7 @@ export const getWords = async (req, res) => {
 export const addWord = async (req, res) => {
     const word = req.body;
     if(!word.word || !word.meaning || !word.language){
-        res.status(400).json({ succes:false,message: "Please fill all required fields" });
+        return res.status(400).json({ succes:false,message: "Please fill all required fields" });
     }
 
     const newWord = new Word(word);
@@ -113,18 +113,46 @@ export const deleteWord = async (req, res) => {
 
 export const searchWordStart = async (req, res) => {
     const { word } = req.query;
+    if (!word || word.trim() === "") {
+        // Return total count when query is empty
+        try {
+            const totalCount = await Word.countDocuments();
+            return res.status(200).json({ success: true, directMatches: [], exampleMatches: [], totalCount });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+    // Escape special regex characters to avoid injection
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const anywhereRegex = { $regex: escaped, $options: "i" };
     try {
-        const words = await Word.find({ word: { $regex: `^${word}`, $options: "i" } });
-        const meanings = await Word.find({ meaning: { $regex: `^${word}`, $options: "i" } });
-        const translations = await Word.find({ translations: { $regex: `^${word}`, $options: "i" } });
-        const examples= await Word.find({ example: { $regex: `^${word}`, $options: "i" } });
-        const combinedResults = [...words, ...meanings, ...translations, ...examples];
-       
-        const uniqueResults = Array.from(new Set(combinedResults.map((w) => w._id.toString()))).map((id) =>
-            combinedResults.find((w) => w._id.toString() === id)
-        );
-        res.status(200).json({success:true, data: uniqueResults });
-        //console.log(uniqueResults);
+        // Direct matches: word field OR meaning OR translations contain the query
+        const directWordMatches = await Word.find({ word: anywhereRegex });
+        const meaningMatches   = await Word.find({ meaning: anywhereRegex });
+        const translationMatches = await Word.find({ translations: anywhereRegex });
+
+        const directCombined = [...directWordMatches, ...meaningMatches, ...translationMatches];
+        const directIds = new Set();
+        const directMatches = [];
+        for (const w of directCombined) {
+            const id = w._id.toString();
+            if (!directIds.has(id)) { directIds.add(id); directMatches.push(w); }
+        }
+
+        // Example/description matches: example OR description contain the query, but NOT already in directMatches
+        const exampleMatches_raw = await Word.find({
+            $or: [
+                { example: anywhereRegex },
+                { description: anywhereRegex }
+            ]
+        });
+        const exampleMatches = exampleMatches_raw.filter(w => !directIds.has(w._id.toString()));
+
+        // Sort alphabetically
+        directMatches.sort((a, b) => a.word.localeCompare(b.word));
+        exampleMatches.sort((a, b) => a.word.localeCompare(b.word));
+
+        res.status(200).json({ success: true, directMatches, exampleMatches });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
         console.error(`Error while searching word: ${error.message}`);

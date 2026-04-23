@@ -30,8 +30,8 @@ axiosApi.interceptors.response.use(
     async (error) => {   
       console.log("Axios Api:::::Response interceptor triggered");
       const originalRequest = error.config;
-      // it means the token has expired and we need to refresh it
-      if (error.response.status === 401 || error.response.status===403 ) { 
+      // Avoid infinite retry loops: only attempt a refresh once per request
+      if ((error.response.status === 401 || error.response.status === 403) && !originalRequest._retry) {
         console.log("Axios Api:::::Unauthorized error detected, attempting to refresh token");
         originalRequest._retry = true;
   
@@ -44,10 +44,10 @@ axiosApi.interceptors.response.use(
           // Retry the original request with the new token
           originalRequest.headers.Authorization = `Bearer ${token}`;
           
-          return axios(originalRequest);
-        } catch (error) {
-          // Handle refresh token error or redirect to login
-          console.error("Axios Api:::::Error refreshing token:", error);
+          return axiosApi(originalRequest);
+        } catch (refreshError) {
+          console.error("Axios Api:::::Error refreshing token:", refreshError);
+          return Promise.reject(refreshError);
         }
       }
   

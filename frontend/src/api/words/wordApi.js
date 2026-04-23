@@ -59,7 +59,7 @@ export async function useUpdateWordEndpoint(wid, word) {
 }
 
 export async function useSearchWordEndpoint(searchTerm) {
-    const requestUrl = `${API_BASE_URL}/words/search?word=${searchTerm}`;
+    const requestUrl = `${API_BASE_URL}/words/search?word=${encodeURIComponent(searchTerm)}`;
     try {
         const response = await axiosApi.get(requestUrl);
         return response.data;

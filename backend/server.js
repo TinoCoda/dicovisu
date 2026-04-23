@@ -28,8 +28,8 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/|\
 console.log('Recreated __dirname:', __dirname);
 
 app.use(express.json());
-
 app.use(logger);
+app.use(cors(corsOptions)); // ✅ Uncomment CORS
 
 app.use((req, res, next) => {
     const realOrigin = req.headers['x-real-origin'];
@@ -37,10 +37,7 @@ app.use((req, res, next) => {
       console.log('Detected real origin via proxy:', realOrigin);
     }
     next();
-  });
-  
-
- app.use(cors(corsOptions));
+});
 
 app.use(cookieParser());
 
@@ -49,10 +46,6 @@ app.use('/api/languages', languageRoute);
 app.use('/api/users', userRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/countries', countryRoute);
-
-
-
-app.use(errorHandler);
 
 if(process.env.NODE_ENV === 'production') {
     console.log('Production mode: Serving static files from frontend/dist');
@@ -72,6 +65,8 @@ app.all('*', (req, res) => {
         res.type('txt').send('404 Not Found');
     }
 });
+
+app.use(errorHandler); // ✅ Error handler should be LAST
 
 app.listen(PORT, () => {
     connectDB();

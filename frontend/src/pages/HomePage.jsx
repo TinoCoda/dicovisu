@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { VStack, Select as ChakraSelect,Text } from '@chakra-ui/react';
+import { VStack, Select as ChakraSelect, Text } from '@chakra-ui/react';
 import { baseStore } from '../store/global';
 
 import { useWordStore } from '../store/words';
 import { useLanguageStore } from '../store/languages';
-import {useAuthStore} from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import { useCountryStore } from '../store/countries';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
-import { fi } from 'date-fns/locale';
 
 console.log("load HomePage.jsx");
 //console.log("baseStore", baseStore.getState());
@@ -26,7 +25,7 @@ const HomePage = () => {
 
    
   const { languages, fetchLanguages } = useLanguageStore();
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState({ directMatches: [], exampleMatches: [], query: "" });
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [entriesCount, setEntriesCount] = useState(0);
 
@@ -34,40 +33,49 @@ const HomePage = () => {
  
 
   useEffect(() => {
-    // login("tinotech", "dev-me")
+    refresh(); // Always refresh auth token
 
-    refresh(); // Refresh authentication status
-
-  
-    fetchWords();
-    addOfflineWords();
-    fetchLanguages(); // Fetch available languages
-    fetchCountries(); // Fetch available countries
-    setWrappedWords(words);
-    setWrappedSearchResults(words);
-  }, [fetchWords, addOfflineWords, fetchLanguages, login, refresh,fetchCountries]);
+    // Guard every fetch: only hit the API on first load, not on every navigation.
+    // Without these guards, every return to "/" re-fetched all data and
+    // triggered multiple token-refresh attempts through the interceptor.
+    if (words.length === 0) {
+      fetchWords();
+      addOfflineWords();
+    }
+    if (languages.length === 0) {
+      fetchLanguages();
+    }
+    if (useCountryStore.getState().countries.length === 0) {
+      fetchCountries();
+    }
+  }, []); // empty deps — all store actions are stable Zustand refs
 
   console.log("countries", useCountryStore.getState().countries);
  
   const handleSearch = async (query) => {
-    console.log("Searching for:", query);
-    const responseObject = await searchWord(query, selectedLanguage); // Pass selected language code
-    console.log("response: search", responseObject);
-    const result = responseObject?.data;
-    console.log("success:", responseObject.success);
-    console.log("message:", responseObject.message);
-    if (!responseObject.success) {
-      console.error("Search failed:", responseObject.message);
+    if (!query || query.trim() === "") {
+      // Empty search: show total count
+      setSearchResults({ directMatches: [], exampleMatches: [], query: "" });
+      const responseObject = await searchWord("", selectedLanguage);
+      if (responseObject?.totalCount !== undefined) {
+        setEntriesCount(responseObject.totalCount);
+      } else if (selectedLanguage) {
+        // Filter by language if selected
+        const filteredWords = words.filter((word) => word.language.includes(selectedLanguage));
+        setEntriesCount(filteredWords.length);
+      } else {
+        setEntriesCount(words.length);
+      }
       return;
     }
-    setSearchResults(result);
-    if (selectedLanguage===""){
-    setEntriesCount(result.length);
-    }else{
-      const filteredWords = result.filter((word) => word.language.includes(selectedLanguage));
-      setEntriesCount(filteredWords.length);
+    const responseObject = await searchWord(query.trim(), selectedLanguage);
+    if (!responseObject?.success) {
+      console.error("Search failed:", responseObject?.message);
+      return;
     }
-    //setWrappedSearchResults(result);
+    const { directMatches = [], exampleMatches = [] } = responseObject;
+    setSearchResults({ directMatches, exampleMatches, query: query.trim() });
+    setEntriesCount(directMatches.length + exampleMatches.length);
   };
 
   const handleSelect = (word) => {
@@ -103,8 +111,8 @@ const HomePage = () => {
           placeholder="Sâla Mbembu"
           onChange={handleLanguageChange}
           value={selectedLanguage}
-          width={"65%"}
-          p={5}
+          maxW="sm"
+          w="full"
         >
           {languages.map((language) => (
             <option key={language.code} value={language.code}>
@@ -118,16 +126,23 @@ const HomePage = () => {
 
         <Text fontSize={{ base: "12", sm: "14" }}
           fontWeight={"bold"}
-          
           textAlign={"center"}
-          >
-            {searchResults.length > 0 ? `Number of entries: ${entriesCount}`: ""}
+        >
+          {(searchResults.directMatches.length > 0 || searchResults.exampleMatches.length > 0)
+            ? `${entriesCount} result(s) found`
+            : entriesCount > 0
+              ? `Total entries: ${entriesCount}`
+              : ""}
         </Text>
 
-
-
         {/* Search Results */}
-        <SearchResult results={searchResults.length > 0 ? searchResults : words} onSelect={handleSelect} />
+        <SearchResult
+          directMatches={searchResults.directMatches}
+          exampleMatches={searchResults.exampleMatches}
+          query={searchResults.query}
+          allWords={words}
+          onSelect={handleSelect}
+        />
 
       
       </VStack>

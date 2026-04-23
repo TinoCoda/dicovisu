@@ -181,43 +181,33 @@ export const useWordStore =create((set) => ({
         return {success:true,message:'Word updated successfully',data:data.data};
     },
 
-    searchWord: async (query,selectedLanguage) => {
-        try{
-            console.log("selected language in wordsStore:", selectedLanguage);
-            const response = await useSearchWordEndpoint(query,selectedLanguage);
-            
-            const data = await response; //.json();
-            console.log("data from searchWord");
-            console.log(data.success);
-            console.log(data);
-            if(!data.success) return {success:false,message:data.message};
-            // split data.data into two arrays: one for words that match with the search term and another for words that have example or description that match with the search term. Then concatenate the two arrays with the first array coming first.
-            const matchedWords = data.data.filter((word) => word.word.toLowerCase().includes(query.toLowerCase()));
-            const otherWords = data.data.filter((word) => matchedWords.indexOf(word) === -1);
-            const matchedWordsSorted = matchedWords.sort((a, b) => a.word.localeCompare(b.word));
-            const otherWordsSorted = otherWords.sort((a, b) => a.word.localeCompare(b.word));
-            console.log("bug - matchedWordsSorted", matchedWordsSorted);
-            console.log("bug - matchedWords", matchedWords);
-            console.log("bug - otherWordsSorted", otherWordsSorted);
-            console.log("bug - otherWords", otherWords);
-            const sortedData = [...matchedWordsSorted, ...otherWordsSorted];
-            console.log("bug - sortedData", sortedData);
-    
-            set({words: sortedData});
-            //console.log(words);
-            return {success:true,message:'Word found',data: sortedData};
+    searchWord: async (query, selectedLanguage) => {
+        try {
+            const data = await useSearchWordEndpoint(query);
+            if (!data.success) return { success: false, message: data.message };
 
-        }catch(error){
-            const regexQuery=`^${query}`
-            const localWords=JSON.parse(localStorage.getItem('words')) ||[];
-            const filteredWords=localWords.filter((w)=>w.word.match(new RegExp(regexQuery,'i')));
-            
-            set({words:filteredWords});
-            console.log(`connection to database is lost: ${error.message}`);
-            console.log(query);
+            let directMatches = data.directMatches || [];
+            let exampleMatches = data.exampleMatches || [];
 
+            // Filter by language if selected
+            if (selectedLanguage) {
+                directMatches = directMatches.filter((w) => w.language.includes(selectedLanguage));
+                exampleMatches = exampleMatches.filter((w) => w.language.includes(selectedLanguage));
+            }
+
+            return { success: true, message: 'Search complete', directMatches, exampleMatches, totalCount: data.totalCount };
+        } catch (error) {
+            // Offline fallback
+            const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const regex = new RegExp(escaped, 'i');
+            const localWords = JSON.parse(localStorage.getItem('words')) || [];
+            const directMatches = localWords.filter((w) => regex.test(w.word) || regex.test(w.meaning));
+            const exampleMatches = localWords.filter((w) =>
+                !directMatches.includes(w) && (regex.test(w.example) || regex.test(w.description))
+            );
+            console.error(`Offline search fallback: ${error.message}`);
+            return { success: true, message: 'Offline results', directMatches, exampleMatches };
         }
-
     },
     selectedWord: JSON.parse(localStorage.getItem('selectedWord')) || null,
     setSelectedWord: (selectedWord) => {

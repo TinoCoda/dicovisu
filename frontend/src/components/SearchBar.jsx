@@ -1,20 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input, Button, InputGroup, InputRightElement, VStack } from "@chakra-ui/react";
+
+const DEBOUNCE_MS = 350;
 
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState("");
+  const timerRef = useRef(null);
 
-  const handleSearch = (searchQuery) => {
-    if (onSearch) {
-      console.log("Search query:", searchQuery);
-      onSearch(searchQuery); // Use the passed value directly
-    }
-  };
+  // Debounced search: only fires after the user stops typing for DEBOUNCE_MS
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      if (onSearch) onSearch(query);
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timerRef.current);
+  }, [query]);
 
-  const handleType = (e) => {
-    const newQuery = e.target.value; // Get the current input value
-    setQuery(newQuery); // Update the state
-    handleSearch(newQuery); // Pass the current value to handleSearch
+  const handleType = (e) => setQuery(e.target.value);
+
+  const handleClick = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (onSearch) onSearch(query);
   };
 
   return (
@@ -23,10 +29,10 @@ function SearchBar({ onSearch }) {
         <Input
           placeholder="tomb' liambu..."
           value={query}
-          onChange={handleType} // Call handleType on input change
+          onChange={handleType}
         />
         <InputRightElement width="4.5rem">
-          <Button colorScheme="blue" onClick={() => handleSearch(query)}>
+          <Button colorScheme="blue" onClick={handleClick}>
             Tomb'
           </Button>
         </InputRightElement>
