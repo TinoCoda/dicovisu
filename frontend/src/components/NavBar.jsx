@@ -20,15 +20,17 @@ const Navbar = () => {
   
   return (
     <Container maxW="1140px" px={4} >
-        <Flex h={16} 
+        <Flex
+        minH={16}
+        h={{ base: "auto", sm: 16 }}
+        py={{ base: 2, sm: 0 }}
         alignItems={"center"}
         justifyContent={"space-between"}
-        flexDir={
-            {
-                base: "column",
-                sm: "row"
-            }
-        }
+        flexDir={{
+            base: "column",
+            sm: "row"
+        }}
+        gap={{ base: 2, sm: 0 }}
         >
            		<Text
 					fontSize={{ base: "22", sm: "28" }}
