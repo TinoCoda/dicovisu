@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Box, VStack, Input, Textarea, Button, useToast } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWordStore } from '../store/words';
+import AudioRecorder from '../components/AudioRecorder';
+import { useUploadAudioEndpoint, useDeleteAudioEndpoint } from '../api/words/wordApi';
 
 function EditWordPage() {
  
@@ -11,26 +13,93 @@ function EditWordPage() {
   const _id=selectedWord._id; // Get the ID of the selected word
   const toast = useToast();
 
-    //const wordDetails= selectedWord 
-    const [wordDetails, setWordDetails] = useState(
-   selectedWord);
-
+  const [wordDetails, setWordDetails] = useState(selectedWord);
+  // Keep translations as a raw editable string; split only when saving
+  const [translationsRaw, setTranslationsRaw] = useState(
+    Array.isArray(selectedWord.translations)
+      ? selectedWord.translations.join(', ')
+      : (selectedWord.translations || '')
+  );
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(
+    selectedWord.audio?.filename ? `/uploads/audio/${selectedWord.audio.filename}` : null
+  );
 
   const handleSave = async () => {
-    const { success, message } = await updateWord(_id, wordDetails);
+    // Split on comma or semicolon at save time; preserve user whitespace during editing
+    const translationsArray = translationsRaw
+      .split(/[,;]/)
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    const detailsToSave = { ...wordDetails, translations: translationsArray };
+
+    // Save word details first
+    const { success, message } = await updateWord(_id, detailsToSave);
+
     if (success) {
-      toast({
-        title: 'Word updated successfully',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      setSelectedWord(wordDetails); // Update the selected word in the store
-      navigate('/details'); // Redirect to the home page or detail page
+      // Upload audio if a new file was recorded/uploaded
+      if (audioFile) {
+        try {
+          const audioResponse = await useUploadAudioEndpoint(_id, audioFile);
+          if (audioResponse.success) {
+            toast({
+              title: 'Word and audio updated successfully',
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            });
+            setSelectedWord(audioResponse.data.word);
+          }
+        } catch (error) {
+          toast({
+            title: 'Word saved but audio upload failed',
+            description: error.message,
+            status: 'warning',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } else {
+        toast({
+          title: 'Word updated successfully',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        setSelectedWord(detailsToSave);
+      }
+
+      navigate('/details');
     } else {
       toast({
         title: 'Failed to update word',
         description: message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleAudioReady = (blob) => {
+    setAudioFile(blob);
+  };
+
+  const handleDeleteAudio = async () => {
+    try {
+      await useDeleteAudioEndpoint(_id);
+      setAudioUrl(null);
+      setAudioFile(null);
+      toast({
+        title: 'Audio deleted successfully',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Failed to delete audio',
+        description: error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -52,9 +121,9 @@ function EditWordPage() {
           onChange={(e) => setWordDetails({ ...wordDetails, meaning: e.target.value })}
         />
         <Input
-          placeholder="other translations (comma separated)"
-          value={wordDetails.translations}
-          onChange={(e) => setWordDetails({ ...wordDetails, translations: e.target.value.split(',').map(t => t.trim()) })}
+          placeholder="other translations (comma or semicolon separated)"
+          value={translationsRaw}
+          onChange={(e) => setTranslationsRaw(e.target.value)}
         />
         <Textarea
           placeholder="Description"
@@ -65,6 +134,11 @@ function EditWordPage() {
           placeholder="Example"
           value={wordDetails.example}
           onChange={(e) => setWordDetails({ ...wordDetails, example: e.target.value })}
+        />
+        <AudioRecorder
+          onAudioReady={handleAudioReady}
+          existingAudioUrl={audioUrl}
+          onDeleteAudio={handleDeleteAudio}
         />
         <Button colorScheme="teal" onClick={handleSave}>
           Save Changes

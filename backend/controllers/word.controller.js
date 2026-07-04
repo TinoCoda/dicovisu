@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
 import Word from "../models/word.model.js";
+import { isWordInDictionary } from "../utils/kikongoLemmatizer.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const deduplicateSentences = (text) => {
     if (!text) return '';
@@ -112,8 +119,14 @@ export const deleteWord = async (req, res) => {
 };
 
 export const searchWordStart = async (req, res) => {
-    const { word } = req.query;
-    if (!word || word.trim() === "") {
+    // Accept ?words=term1,term2,... (new) or legacy ?word=term
+    const rawWords = req.query.words || req.query.word || "";
+    const termList = rawWords
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+    if (termList.length === 0) {
         // Return total count when query is empty
         try {
             const totalCount = await Word.countDocuments();
@@ -122,16 +135,24 @@ export const searchWordStart = async (req, res) => {
             return res.status(500).json({ success: false, message: error.message });
         }
     }
-    // Escape special regex characters to avoid injection
-    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const anywhereRegex = { $regex: escaped, $options: "i" };
-    try {
-        // Direct matches: word field OR meaning OR translations contain the query
-        const directWordMatches = await Word.find({ word: anywhereRegex });
-        const meaningMatches   = await Word.find({ meaning: anywhereRegex });
-        const translationMatches = await Word.find({ translations: anywhereRegex });
 
-        const directCombined = [...directWordMatches, ...meaningMatches, ...translationMatches];
+    try {
+        // For the `word` field: starts-with match for every term
+        const wordStartsWithConditions = termList.map(t => ({
+            word: { $regex: "^" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" }
+        }));
+
+        // For meaning/translations: contains match (useful for French meanings & cross-language)
+        const anywhereConditions = termList.map(t => {
+            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const anyRx = { $regex: esc, $options: "i" };
+            return { $or: [{ meaning: anyRx }, { translations: anyRx }] };
+        });
+
+        const directWordMatches    = await Word.find({ $or: wordStartsWithConditions });
+        const meaningMatches       = await Word.find({ $or: anywhereConditions });
+
+        const directCombined = [...directWordMatches, ...meaningMatches];
         const directIds = new Set();
         const directMatches = [];
         for (const w of directCombined) {
@@ -139,13 +160,13 @@ export const searchWordStart = async (req, res) => {
             if (!directIds.has(id)) { directIds.add(id); directMatches.push(w); }
         }
 
-        // Example/description matches: example OR description contain the query, but NOT already in directMatches
-        const exampleMatches_raw = await Word.find({
-            $or: [
-                { example: anywhereRegex },
-                { description: anywhereRegex }
-            ]
+        // Example/description: contains match, excluding already-found words
+        const exampleConditions = termList.map(t => {
+            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const anyRx = { $regex: esc, $options: "i" };
+            return { $or: [{ example: anyRx }, { description: anyRx }] };
         });
+        const exampleMatches_raw = await Word.find({ $or: exampleConditions });
         const exampleMatches = exampleMatches_raw.filter(w => !directIds.has(w._id.toString()));
 
         // Sort alphabetically
@@ -386,13 +407,16 @@ export const getStatistics = async (req, res) => {
                             (stats.exampleWords.get(exWord) || 0) + 1
                         );
                         
-                        // If this word exists in the dictionary, count it separately
-                        if (dictionaryWordsMap.has(exWord)) {
+                        // If this word (or any of its lemmatized stems) exists in the
+                        // dictionary, count it as a known word — not a missing one.
+                        // This prevents inflected verb forms like "nakusididi" from
+                        // showing up as missing when "sididi" is already in the dictionary.
+                        if (isWordInDictionary(exWord, dictionaryWordsMap)) {
                             stats.dictionaryWordsInExamples.set(exWord,
                                 (stats.dictionaryWordsInExamples.get(exWord) || 0) + 1
                             );
                         } else {
-                            // This word is NOT in the dictionary
+                            // This word is NOT in the dictionary even after lemmatization
                             stats.wordsInExamplesNotInDictionary.set(exWord,
                                 (stats.wordsInExamplesNotInDictionary.get(exWord) || 0) + 1
                             );
@@ -485,6 +509,101 @@ export const getStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getStatistics:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Upload audio pronunciation for a word
+export const uploadAudio = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid word ID" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No audio file provided" });
+        }
+
+        const word = await Word.findById(id);
+        if (!word) {
+            // Delete uploaded file if word doesn't exist
+            fs.unlinkSync(req.file.path);
+            return res.status(404).json({ success: false, message: "Word not found" });
+        }
+
+        // Delete old audio file if it exists
+        if (word.audio?.filename) {
+            const oldFilePath = path.join(__dirname, '..', 'uploads', 'audio', word.audio.filename);
+            if (fs.existsSync(oldFilePath)) {
+                fs.unlinkSync(oldFilePath);
+            }
+        }
+
+        // Update word with new audio metadata
+        word.audio = {
+            filename: req.file.filename,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date()
+        };
+
+        await word.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Audio uploaded successfully",
+            data: {
+                word,
+                audioUrl: `/uploads/audio/${req.file.filename}`
+            }
+        });
+    } catch (error) {
+        // Clean up uploaded file on error
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        console.error("Error in uploadAudio:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Delete audio pronunciation for a word
+export const deleteAudio = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid word ID" });
+        }
+
+        const word = await Word.findById(id);
+        if (!word) {
+            return res.status(404).json({ success: false, message: "Word not found" });
+        }
+
+        if (!word.audio?.filename) {
+            return res.status(404).json({ success: false, message: "No audio file to delete" });
+        }
+
+        // Delete the audio file from filesystem
+        const filePath = path.join(__dirname, '..', 'uploads', 'audio', word.audio.filename);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        // Remove audio metadata from word
+        word.audio = undefined;
+        await word.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Audio deleted successfully",
+            data: word
+        });
+    } catch (error) {
+        console.error("Error in deleteAudio:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

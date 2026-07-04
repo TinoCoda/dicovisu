@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, VStack, HStack, Link, Badge, Box, useColorModeValue } from '@chakra-ui/react';
+import { Text, VStack, HStack, Link, Badge, Box, useColorModeValue, Icon } from '@chakra-ui/react';
+import { FaPlay, FaVolumeUp } from 'react-icons/fa';
 
 function WordContent({ selectedWord, onWordClick }) {
   // Function to extract original text and translation pairs
@@ -77,6 +78,23 @@ function WordContent({ selectedWord, onWordClick }) {
         <Text fontStyle="italic" color="gray.600">
           Translations: {selectedWord.translations.join(', ')}
         </Text>
+      )}
+
+      {/* Audio Pronunciation Section */}
+      {selectedWord.audio?.filename && (
+        <Box w="100%" mt={2} p={3} bg={bgColor} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
+          <HStack spacing={3}>
+            <Icon as={FaVolumeUp} color="teal.500" />
+            <Text fontWeight="bold" fontSize="sm" color="gray.600">
+              Pronunciation:
+            </Text>
+            <audio
+              src={`/uploads/audio/${selectedWord.audio.filename}`}
+              controls
+              style={{ height: '32px', flexGrow: 1 }}
+            />
+          </HStack>
+        </Box>
       )}
 
       {/* Related Words Section */}

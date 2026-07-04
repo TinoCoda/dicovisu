@@ -181,9 +181,11 @@ export const useWordStore =create((set) => ({
         return {success:true,message:'Word updated successfully',data:data.data};
     },
 
-    searchWord: async (query, selectedLanguage) => {
+    searchWord: async (terms, selectedLanguage) => {
+        // terms: string (empty query) or string[] (lemma variants)
+        const termList = Array.isArray(terms) ? terms : (terms ? [terms] : []);
         try {
-            const data = await useSearchWordEndpoint(query);
+            const data = await useSearchWordEndpoint(termList.length ? termList : ['']);
             if (!data.success) return { success: false, message: data.message };
 
             let directMatches = data.directMatches || [];
@@ -197,9 +199,10 @@ export const useWordStore =create((set) => ({
 
             return { success: true, message: 'Search complete', directMatches, exampleMatches, totalCount: data.totalCount };
         } catch (error) {
-            // Offline fallback
-            const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(escaped, 'i');
+            // Offline fallback — use first term
+            const fallbackTerm = termList[0] || '';
+            const escaped = fallbackTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const regex = new RegExp('^' + escaped, 'i');
             const localWords = JSON.parse(localStorage.getItem('words')) || [];
             const directMatches = localWords.filter((w) => regex.test(w.word) || regex.test(w.meaning));
             const exampleMatches = localWords.filter((w) =>

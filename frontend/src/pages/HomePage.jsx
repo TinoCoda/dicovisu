@@ -9,6 +9,7 @@ import { useCountryStore } from '../store/countries';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
+import { getLemmaSearchTerms } from '../utils/kikongoLemmatizer';
 
 console.log("load HomePage.jsx");
 //console.log("baseStore", baseStore.getState());
@@ -68,7 +69,9 @@ const HomePage = () => {
       }
       return;
     }
-    const responseObject = await searchWord(query.trim(), selectedLanguage);
+    const { terms, isKikongo } = getLemmaSearchTerms(query.trim());
+    console.log(`Search [${isKikongo ? 'kikongo' : 'french'}] terms:`, terms);
+    const responseObject = await searchWord(terms, selectedLanguage);
     if (!responseObject?.success) {
       console.error("Search failed:", responseObject?.message);
       return;

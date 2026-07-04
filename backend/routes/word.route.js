@@ -1,14 +1,17 @@
 import express from 'express';
 import { verifyJWT } from '../middleware/verifyJWT.js';
+import upload from '../middleware/audioUpload.js';
 import {
-    getWords, 
-    addWord, 
-    deleteWord, 
+    getWords,
+    addWord,
+    deleteWord,
     updateWord,
     searchWordStart,
     addWordRelationship,
     removeWordRelationship,
-    getStatistics
+    getStatistics,
+    uploadAudio,
+    deleteAudio
 } from '../controllers/word.controller.js';
 
 const router = express.Router();
@@ -26,5 +29,8 @@ router.get('/statistics', getStatistics);
 router.post('/:wordId/relationships', addWordRelationship);
 router.delete('/:wordId/relationships/:relatedWordId', removeWordRelationship);
 
+// Audio pronunciation routes
+router.post('/:id/audio', upload.single('audio'), uploadAudio);
+router.delete('/:id/audio', deleteAudio);
 
 export default router;

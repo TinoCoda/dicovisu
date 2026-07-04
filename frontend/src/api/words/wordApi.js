@@ -58,8 +58,10 @@ export async function useUpdateWordEndpoint(wid, word) {
     }
 }
 
-export async function useSearchWordEndpoint(searchTerm) {
-    const requestUrl = `${API_BASE_URL}/words/search?word=${encodeURIComponent(searchTerm)}`;
+export async function useSearchWordEndpoint(terms) {
+    // terms can be a string (legacy) or an array of variants
+    const termList = Array.isArray(terms) ? terms : [terms];
+    const requestUrl = `${API_BASE_URL}/words/search?words=${termList.map(encodeURIComponent).join(',')}`;
     try {
         const response = await axiosApi.get(requestUrl);
         return response.data;
@@ -108,6 +110,35 @@ export async function useGetStatisticsEndpoint() {
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to fetch statistics');
+    }
+}
+
+// Upload audio pronunciation for a word
+export async function useUploadAudioEndpoint(wordId, audioFile) {
+    const requestUrl = `${API_BASE_URL}/words/${wordId}/audio`;
+    const formData = new FormData();
+    formData.append('audio', audioFile);
+
+    try {
+        const response = await axiosApi.post(requestUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to upload audio');
+    }
+}
+
+// Delete audio pronunciation for a word
+export async function useDeleteAudioEndpoint(wordId) {
+    const requestUrl = `${API_BASE_URL}/words/${wordId}/audio`;
+    try {
+        const response = await axiosApi.delete(requestUrl);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to delete audio');
     }
 }
 

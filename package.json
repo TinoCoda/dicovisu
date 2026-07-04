@@ -24,8 +24,8 @@
     "express-rate-limit": "^6.11.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.11.0",
+    "multer": "^2.2.0",
     "react-select": "^5.10.1",
-    
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -4,6 +4,8 @@ import Select from 'react-select'; // Import react-select
 import { useWordStore } from '../store/words';
 import { useLanguageStore } from '../store/languages';
 import { useCountryStore } from '../store/countries';
+import AudioRecorder from '../components/AudioRecorder';
+import { useUploadAudioEndpoint } from '../api/words/wordApi';
 
 function AddNewEntry() {
   const [newWord, setNewWord] = useState({
@@ -13,6 +15,8 @@ function AddNewEntry() {
     description: "",
     example: "",
   });
+  const [translationsRaw, setTranslationsRaw] = useState("");
+  const [audioFile, setAudioFile] = useState(null);
 
   const toast = useToast();
   const { addWord } = useWordStore();
@@ -25,12 +29,47 @@ function AddNewEntry() {
   }, [fetchLanguages, fetchCountries]);
 
   const handleAddWord = async () => {
-    console.log("Submitting new word:", newWord);
+    // Split translations only at submit time, support comma or semicolon separators
+    const translationsArray = translationsRaw
+      .split(/[,;]/)
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    const wordToSubmit = { ...newWord, translations: translationsArray };
+    console.log("Submitting new word:", wordToSubmit);
 
-    const { success, message } = await addWord(newWord);
+    const { success, message, word: savedWord } = await addWord(wordToSubmit);
     console.log("addWord", success, message);
 
     if (success) {
+      // If audio was recorded/uploaded, upload it now
+      if (audioFile && savedWord?._id) {
+        try {
+          await useUploadAudioEndpoint(savedWord._id, audioFile);
+          toast({
+            title: "Word and audio added successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } catch (error) {
+          toast({
+            title: "Word saved but audio upload failed",
+            description: error.message,
+            status: "warning",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } else {
+        toast({
+          title: "Word added successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+
+      // Reset form
       setNewWord({
         word: "",
         meaning: "",
@@ -38,13 +77,8 @@ function AddNewEntry() {
         description: "",
         example: "",
       });
-
-      toast({
-        title: "Word added successfully",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      setTranslationsRaw("");
+      setAudioFile(null);
     } else {
       toast({
         title: "Failed to add word",
@@ -54,6 +88,10 @@ function AddNewEntry() {
         isClosable: true,
       });
     }
+  };
+
+  const handleAudioReady = (blob) => {
+    setAudioFile(blob);
   };
 
   const handleLanguageChange = (selectedOptions) => {
@@ -132,10 +170,10 @@ function AddNewEntry() {
                 onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
               />
               <Input
-                placeholder="other translations (comma separated)"
+                placeholder="other translations (comma or semicolon separated)"
                 name="translations"
-                value={newWord.translations}
-                onChange={(e) => setNewWord({ ...newWord, translations: e.target.value.split(',').map(t => t.trim()) })}
+                value={translationsRaw}
+                onChange={(e) => setTranslationsRaw(e.target.value)}
               />
               <Select
                 isMulti // Enable multi-select
@@ -162,6 +200,11 @@ function AddNewEntry() {
                 name="example"
                 value={newWord.example}
                 onChange={(e) => setNewWord({ ...newWord, example: e.target.value })}
+              />
+              <AudioRecorder
+                onAudioReady={handleAudioReady}
+                existingAudioUrl={null}
+                onDeleteAudio={null}
               />
               <Button
                 colorScheme="teal"

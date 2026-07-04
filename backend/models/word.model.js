@@ -25,7 +25,27 @@ const wordSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    
+
+    // Audio pronunciation
+    audio: {
+        filename: {
+            type: String,
+            required: false
+        },
+        mimetype: {
+            type: String,
+            required: false
+        },
+        size: {
+            type: Number,
+            required: false
+        },
+        uploadedAt: {
+            type: Date,
+            required: false
+        }
+    },
+
     // Related words with relationship types
     relatedWords: [{
         wordId: { 

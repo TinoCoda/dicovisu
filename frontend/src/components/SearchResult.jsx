@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useWordStore } from "../store/words";
 import { Icon } from "@chakra-ui/react";
 import { MdOutlineSpellcheck } from "react-icons/md";
+import { FaVolumeUp } from "react-icons/fa";
 
 // ─── Helper: highlight occurrences of `query` inside `text` ────────────────
 function HighlightedText({ text, query, fontSize = "sm", color = "gray.600" }) {
@@ -80,12 +81,17 @@ function ResultRow({ word, query, showExampleSnippet, onSelect }) {
           display="flex"
           alignItems="center"
         >
-          <Text fontSize="sm" fontWeight="semibold" color="blue.700" noOfLines={1}>
-            {query
-              ? <HighlightedText text={word.word} query={query} fontSize="sm" color="blue.700" />
-              : word.word
-            }
-          </Text>
+          <HStack spacing={2}>
+            <Text fontSize="sm" fontWeight="semibold" color="blue.700" noOfLines={1}>
+              {query
+                ? <HighlightedText text={word.word} query={query} fontSize="sm" color="blue.700" />
+                : word.word
+              }
+            </Text>
+            {word.audio?.filename && (
+              <Icon as={FaVolumeUp} color="teal.500" boxSize={3} />
+            )}
+          </HStack>
         </Box>
         {/* Right column — meaning / translation */}
         <Box flex="1" px={3} py={2} display="flex" flexDir="column" justifyContent="center">
