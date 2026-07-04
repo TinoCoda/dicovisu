@@ -9,9 +9,7 @@ import asyncHandler from 'express-async-handler'
 // @access Public
 const login = asyncHandler(async (req, res) => {
     const { username, password } = req.body
-    console.log("login request body: ", req.body)
     console.log("login request username: ", username)
-    console.log("login request password: ", password)
 
     if (!username || !password) {
         return res.status(400).json({ message: 'All fields are required' })

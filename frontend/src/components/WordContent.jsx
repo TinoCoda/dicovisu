@@ -82,18 +82,34 @@ function WordContent({ selectedWord, onWordClick }) {
 
       {/* Audio Pronunciation Section */}
       {selectedWord.audio?.filename && (
-        <Box w="100%" mt={2} p={3} bg={bgColor} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
-          <HStack spacing={3}>
-            <Icon as={FaVolumeUp} color="teal.500" />
-            <Text fontWeight="bold" fontSize="sm" color="gray.600">
-              Pronunciation:
-            </Text>
-            <audio
-              src={`/uploads/audio/${selectedWord.audio.filename}`}
-              controls
-              style={{ height: '32px', flexGrow: 1 }}
-            />
-          </HStack>
+        <Box
+          w="100%"
+          mt={2}
+          p={{ base: 3, md: 4 }}
+          bg={bgColor}
+          borderRadius="lg"
+          borderWidth="2px"
+          borderColor="teal.300"
+        >
+          <VStack spacing={2} align="stretch">
+            <HStack spacing={2}>
+              <Icon as={FaVolumeUp} color="teal.500" boxSize={{ base: 4, md: 5 }} />
+              <Text fontWeight="bold" fontSize={{ base: 'xs', md: 'sm' }} color="gray.600">
+                Pronunciation
+              </Text>
+            </HStack>
+            <Box w="100%">
+              <audio
+                src={`/uploads/audio/${selectedWord.audio.filename}`}
+                controls
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  minHeight: '40px'
+                }}
+              />
+            </Box>
+          </VStack>
         </Box>
       )}
 

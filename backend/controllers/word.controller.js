@@ -32,35 +32,11 @@ const deduplicateSentences = (text) => {
 export const getWords = async (req, res) => {
     try {
         const words = await Word.find();
-        const size=words.length;
+        const size = words.length;
 
-
-        words.forEach(word => {
-            if(word.example){
-                const originalExample = word.example;   
-                const deduplicatedExample = deduplicateSentences(originalExample);
-                if (originalExample !== deduplicatedExample) {
-                    //console.log(`Deduplicated example for word "${word.word}":\n${deduplicatedExample}\n---`);
-                    word.example = deduplicatedExample;
-                    //word.save().catch(err => console.error(`Error saving deduplicated example for word "${word.word}":`, err));
-                    // update the word in the database with the deduplicated example
-                    updateWord({ params: { id: word._id }, body: word }, {
-                        status: (code) => ({
-                            json: (data) => {
-                                if (code === 200) {
-                                    console.log(`Successfully updated word "${word.word}" with deduplicated example.`);
-                                } else {
-                                    console.error(`Failed to update word "${word.word}". Status code: ${code}, Response:`, data);
-                                }
-                            }
-                        })
-                    });
-                }
-            }
-        });
-        res.status(200).json({size:size,data:words});
+        res.status(200).json({ success: true, size: size, data: words });
     } catch (error) {
-        res.status(500).json({ succes: false,message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, Input, Textarea, Button, useToast } from '@chakra-ui/react';
+import { Box, VStack, Input, Textarea, Button, useToast, Container, Heading } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWordStore } from '../store/words';
 import AudioRecorder from '../components/AudioRecorder';
@@ -108,43 +108,64 @@ function EditWordPage() {
   };
 
   return (
-    <Box p={6}>
-      <VStack spacing={4}>
+    <Container maxW="container.md" py={{ base: 4, md: 8 }} px={{ base: 4, md: 6 }}>
+      <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+        <Heading size={{ base: 'md', md: 'lg' }} textAlign="center">
+          Edit Word
+        </Heading>
+
         <Input
           placeholder="Word"
           value={wordDetails.word}
           onChange={(e) => setWordDetails({ ...wordDetails, word: e.target.value })}
+          size={{ base: 'md', md: 'lg' }}
+          fontSize={{ base: 'md', md: 'lg' }}
         />
         <Input
           placeholder="Meaning"
           value={wordDetails.meaning}
           onChange={(e) => setWordDetails({ ...wordDetails, meaning: e.target.value })}
+          size={{ base: 'md', md: 'lg' }}
+          fontSize={{ base: 'md', md: 'lg' }}
         />
         <Input
           placeholder="other translations (comma or semicolon separated)"
           value={translationsRaw}
           onChange={(e) => setTranslationsRaw(e.target.value)}
+          size={{ base: 'md', md: 'lg' }}
+          fontSize={{ base: 'md', md: 'lg' }}
         />
         <Textarea
           placeholder="Description"
           value={wordDetails.description}
           onChange={(e) => setWordDetails({ ...wordDetails, description: e.target.value })}
+          minH={{ base: '80px', md: '100px' }}
+          fontSize={{ base: 'md', md: 'lg' }}
         />
         <Textarea
           placeholder="Example"
           value={wordDetails.example}
           onChange={(e) => setWordDetails({ ...wordDetails, example: e.target.value })}
+          minH={{ base: '120px', md: '150px' }}
+          fontSize={{ base: 'md', md: 'lg' }}
         />
         <AudioRecorder
           onAudioReady={handleAudioReady}
           existingAudioUrl={audioUrl}
           onDeleteAudio={handleDeleteAudio}
         />
-        <Button colorScheme="teal" onClick={handleSave}>
+        <Button
+          colorScheme="teal"
+          onClick={handleSave}
+          size={{ base: 'lg', md: 'lg' }}
+          h={{ base: '50px', md: '60px' }}
+          fontSize={{ base: 'lg', md: 'xl' }}
+          w="100%"
+        >
           Save Changes
         </Button>
       </VStack>
-    </Box>
+    </Container>
   );
 }
 

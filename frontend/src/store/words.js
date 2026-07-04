@@ -74,31 +74,55 @@ export const useWordStore =create((set) => ({
 
     },
     addOfflineWords: async () => {
-        const offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
-        try{
-            if(offlineNewWords.length===0) return;
-            for(const word of offlineNewWords){
-                const response = await fetch("/api/words", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(word)
-                })
-                const data = await response.json()
-                set((state) => ({words: [...state.words, data.data]}))
-    
-            }
-            localStorage.setItem('newWords',JSON.stringify([]));
-            return {success:true,message:'Offline words added successfully'};
+        const offlineNewWords = JSON.parse(localStorage.getItem('newWords')) || [];
 
-        }catch(e){
-            console.log(`Run into an error: ${e.message}`);
-            localStorage.setItem('newWords',JSON.stringify([]));
-            return {success:false,message:e.message};
-
+        if (offlineNewWords.length === 0) {
+            return { success: true, message: 'No offline words to sync' };
         }
 
+        const successfulWords = [];
+        const failedWords = [];
+
+        try {
+            for (const word of offlineNewWords) {
+                try {
+                    // Use authenticated API endpoint instead of raw fetch
+                    const response = await useAddWordEndpoint(word);
+
+                    if (response.success && response.data) {
+                        set((state) => ({ words: [...state.words, response.data] }));
+                        successfulWords.push(word);
+                        console.log(`✓ Synced offline word: ${word.word}`);
+                    } else {
+                        failedWords.push(word);
+                        console.warn(`Failed to sync word: ${word.word}`);
+                    }
+                } catch (error) {
+                    // If individual word fails, keep it in failed list
+                    failedWords.push(word);
+                    console.error(`Error syncing word "${word.word}":`, error.message);
+                }
+            }
+
+            // Only remove successfully synced words from localStorage
+            if (successfulWords.length > 0) {
+                localStorage.setItem('newWords', JSON.stringify(failedWords));
+                console.log(`Synced ${successfulWords.length} offline words, ${failedWords.length} failed`);
+            }
+
+            return {
+                success: failedWords.length === 0,
+                message: failedWords.length === 0
+                    ? `Successfully synced ${successfulWords.length} offline words`
+                    : `Synced ${successfulWords.length} words, ${failedWords.length} failed`,
+                synced: successfulWords.length,
+                failed: failedWords.length
+            };
+
+        } catch (error) {
+            console.error('Error in addOfflineWords:', error);
+            return { success: false, message: error.message };
+        }
     },
     fetchWords: async () => {
         try{

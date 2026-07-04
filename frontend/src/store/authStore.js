@@ -13,7 +13,6 @@ export const useAuthStore = create((set) => ({
  
     login: async ( username , password ) => {
         console.log("Attempting to log in with username/store:  ", username); // Debugging log
-        console.log("Attempting to log in with password/store:  ",password);
         try {
             console.log("logging in... useAuthStore::::::::::::");
             const response = await useLoginEndpoint(username, password);

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -7,24 +7,60 @@ import {
     Text,
     IconButton,
     useToast,
-    Input
+    Input,
+    Progress,
+    Flex,
+    Badge
 } from '@chakra-ui/react';
-import { FaMicrophone, FaStop, FaUpload, FaTrash, FaPlay } from 'react-icons/fa';
+import { FaMicrophone, FaStop, FaUpload, FaTrash, FaPlay, FaPause } from 'react-icons/fa';
+import WaveformVisualizer from './WaveformVisualizer';
 
 const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState(null);
     const [audioUrl, setAudioUrl] = useState(existingAudioUrl || null);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [audioStream, setAudioStream] = useState(null);
+
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const fileInputRef = useRef(null);
+    const audioPlayerRef = useRef(null);
+    const timerRef = useRef(null);
     const toast = useToast();
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (audioUrl && !existingAudioUrl) {
+                URL.revokeObjectURL(audioUrl);
+            }
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []);
+
+    // Update existing audio URL when prop changes
+    useEffect(() => {
+        if (existingAudioUrl) {
+            setAudioUrl(existingAudioUrl);
+        }
+    }, [existingAudioUrl]);
 
     // Start recording
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorderRef.current = new MediaRecorder(stream);
+            setAudioStream(stream);
+
+            mediaRecorderRef.current = new MediaRecorder(stream, {
+                mimeType: 'audio/webm;codecs=opus'
+            });
             audioChunksRef.current = [];
 
             mediaRecorderRef.current.ondataavailable = (event) => {
@@ -40,18 +76,26 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
                 setAudioUrl(url);
                 onAudioReady(blob);
 
-                // Stop all tracks to release microphone
+                // Stop stream
                 stream.getTracks().forEach(track => track.stop());
+                setAudioStream(null);
             };
 
             mediaRecorderRef.current.start();
             setIsRecording(true);
+            setRecordingTime(0);
+
+            // Start timer
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
 
             toast({
                 title: 'Recording started',
                 description: 'Speak clearly into your microphone',
                 status: 'info',
                 duration: 2000,
+                isClosable: true,
             });
         } catch (error) {
             console.error('Error accessing microphone:', error);
@@ -60,6 +104,7 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
                 description: 'Please allow microphone access to record audio',
                 status: 'error',
                 duration: 3000,
+                isClosable: true,
             });
         }
     };
@@ -70,11 +115,16 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
 
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+
             toast({
                 title: 'Recording stopped',
-                description: 'You can now preview or upload your recording',
+                description: `Duration: ${formatTime(recordingTime)}`,
                 status: 'success',
                 duration: 2000,
+                isClosable: true,
             });
         }
     };
@@ -90,6 +140,7 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
                     description: 'Please upload an audio file',
                     status: 'error',
                     duration: 3000,
+                    isClosable: true,
                 });
                 return;
             }
@@ -101,6 +152,7 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
                     description: 'Please upload a file smaller than 5MB',
                     status: 'error',
                     duration: 3000,
+                    isClosable: true,
                 });
                 return;
             }
@@ -112,20 +164,22 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
 
             toast({
                 title: 'Audio file loaded',
-                description: 'You can now preview or upload your audio',
+                description: file.name,
                 status: 'success',
                 duration: 2000,
+                isClosable: true,
             });
         }
     };
 
     // Clear audio
     const clearAudio = () => {
-        if (audioUrl) {
+        if (audioUrl && !existingAudioUrl) {
             URL.revokeObjectURL(audioUrl);
         }
         setAudioBlob(null);
         setAudioUrl(existingAudioUrl || null);
+        setRecordingTime(0);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -139,107 +193,180 @@ const AudioRecorder = ({ onAudioReady, existingAudioUrl, onDeleteAudio }) => {
         clearAudio();
     };
 
+    // Toggle play/pause
+    const togglePlayback = () => {
+        if (audioPlayerRef.current) {
+            if (isPlaying) {
+                audioPlayerRef.current.pause();
+            } else {
+                audioPlayerRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    // Format time helper
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     return (
         <VStack spacing={4} align="stretch" w="100%">
-            <Text fontWeight="bold" fontSize="md">
-                Audio Pronunciation
-            </Text>
+            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
+                <Text fontWeight="bold" fontSize={{ base: 'sm', md: 'md' }}>
+                    Audio Pronunciation
+                </Text>
+                {isRecording && (
+                    <Badge colorScheme="red" fontSize="sm" px={3} py={1}>
+                        🔴 {formatTime(recordingTime)}
+                    </Badge>
+                )}
+            </Flex>
+
+            {/* Waveform Visualizer - shown during recording */}
+            {isRecording && audioStream && (
+                <WaveformVisualizer
+                    audioStream={audioStream}
+                    isRecording={isRecording}
+                    height={100}
+                    color="#E53E3E"
+                />
+            )}
 
             {/* Recording/Upload Controls */}
-            <HStack spacing={3}>
-                {!isRecording && !audioBlob && (
-                    <>
-                        <Button
-                            leftIcon={<FaMicrophone />}
-                            onClick={startRecording}
-                            colorScheme="red"
-                            size="sm"
-                        >
-                            Record
-                        </Button>
-
-                        <Button
-                            leftIcon={<FaUpload />}
-                            onClick={() => fileInputRef.current?.click()}
-                            colorScheme="blue"
-                            size="sm"
-                        >
-                            Upload File
-                        </Button>
-
-                        <Input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="audio/*"
-                            onChange={handleFileUpload}
-                            display="none"
-                        />
-                    </>
-                )}
-
-                {isRecording && (
+            {!isRecording && !audioBlob && (
+                <VStack spacing={3} w="100%">
                     <Button
-                        leftIcon={<FaStop />}
-                        onClick={stopRecording}
+                        leftIcon={<FaMicrophone />}
+                        onClick={startRecording}
                         colorScheme="red"
-                        size="sm"
+                        size={{ base: 'md', md: 'lg' }}
+                        w="100%"
+                        h={{ base: '50px', md: '60px' }}
+                        fontSize={{ base: 'md', md: 'lg' }}
                     >
-                        Stop Recording
+                        Record Audio
                     </Button>
-                )}
-            </HStack>
+
+                    <Button
+                        leftIcon={<FaUpload />}
+                        onClick={() => fileInputRef.current?.click()}
+                        colorScheme="blue"
+                        variant="outline"
+                        size={{ base: 'md', md: 'lg' }}
+                        w="100%"
+                        h={{ base: '50px', md: '60px' }}
+                        fontSize={{ base: 'md', md: 'lg' }}
+                    >
+                        Upload Audio File
+                    </Button>
+
+                    <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="audio/*"
+                        onChange={handleFileUpload}
+                        display="none"
+                    />
+                </VStack>
+            )}
+
+            {/* Stop Recording Button */}
+            {isRecording && (
+                <Button
+                    leftIcon={<FaStop />}
+                    onClick={stopRecording}
+                    colorScheme="red"
+                    size={{ base: 'md', md: 'lg' }}
+                    w="100%"
+                    h={{ base: '50px', md: '60px' }}
+                    fontSize={{ base: 'md', md: 'lg' }}
+                    animation="pulse 2s infinite"
+                >
+                    Stop Recording
+                </Button>
+            )}
 
             {/* Audio Preview */}
-            {audioUrl && (
+            {audioUrl && !isRecording && (
                 <Box
-                    p={3}
-                    borderWidth={1}
-                    borderRadius="md"
+                    p={{ base: 3, md: 4 }}
+                    borderWidth={2}
+                    borderRadius="lg"
                     bg="gray.50"
                     _dark={{ bg: 'gray.700' }}
+                    borderColor="teal.300"
                 >
-                    <HStack spacing={3} justify="space-between">
-                        <audio
-                            src={audioUrl}
-                            controls
-                            style={{ width: '100%', maxWidth: '400px' }}
-                        />
+                    <VStack spacing={3}>
+                        {/* Custom Audio Player */}
+                        <HStack spacing={3} w="100%">
+                            <IconButton
+                                icon={isPlaying ? <FaPause /> : <FaPlay />}
+                                onClick={togglePlayback}
+                                colorScheme="teal"
+                                size={{ base: 'md', md: 'lg' }}
+                                aria-label={isPlaying ? 'Pause' : 'Play'}
+                            />
 
-                        <HStack>
-                            {existingAudioUrl && (
-                                <IconButton
-                                    icon={<FaTrash />}
-                                    onClick={handleDelete}
-                                    colorScheme="red"
-                                    size="sm"
-                                    aria-label="Delete audio"
-                                    title="Delete audio"
+                            <audio
+                                ref={audioPlayerRef}
+                                src={audioUrl}
+                                onEnded={() => setIsPlaying(false)}
+                                onPlay={() => setIsPlaying(true)}
+                                onPause={() => setIsPlaying(false)}
+                                style={{ display: 'none' }}
+                            />
+
+                            <Box flex="1">
+                                <audio
+                                    src={audioUrl}
+                                    controls
+                                    style={{
+                                        width: '100%',
+                                        height: '40px'
+                                    }}
                                 />
-                            )}
-                            {audioBlob && !existingAudioUrl && (
-                                <IconButton
-                                    icon={<FaTrash />}
-                                    onClick={clearAudio}
-                                    colorScheme="gray"
-                                    size="sm"
-                                    aria-label="Clear audio"
-                                    title="Clear audio"
-                                />
-                            )}
+                            </Box>
+
+                            <IconButton
+                                icon={<FaTrash />}
+                                onClick={existingAudioUrl ? handleDelete : clearAudio}
+                                colorScheme={existingAudioUrl ? 'red' : 'gray'}
+                                size={{ base: 'md', md: 'lg' }}
+                                aria-label="Delete audio"
+                            />
                         </HStack>
-                    </HStack>
 
-                    {audioBlob && (
-                        <Text fontSize="xs" color="gray.500" mt={2}>
-                            {audioBlob.name || 'Recorded audio'} ({Math.round(audioBlob.size / 1024)}KB)
-                        </Text>
-                    )}
+                        {/* File Info */}
+                        {audioBlob && (
+                            <Text fontSize="xs" color="gray.500" textAlign="center">
+                                {audioBlob.name || 'Recorded audio'} • {Math.round(audioBlob.size / 1024)}KB
+                                {audioBlob.type && ` • ${audioBlob.type.split('/')[1].toUpperCase()}`}
+                            </Text>
+                        )}
+                    </VStack>
                 </Box>
             )}
 
-            <Text fontSize="xs" color="gray.500">
-                Supported formats: MP3, WAV, WebM, OGG, M4A (max 5MB)
+            {/* Help Text */}
+            <Text fontSize="xs" color="gray.500" textAlign="center">
+                Supported: MP3, WAV, WebM, OGG, M4A (max 5MB)
             </Text>
+
+            <style>
+                {`
+                    @keyframes pulse {
+                        0%, 100% {
+                            opacity: 1;
+                        }
+                        50% {
+                            opacity: 0.7;
+                        }
+                    }
+                `}
+            </style>
         </VStack>
     );
 };

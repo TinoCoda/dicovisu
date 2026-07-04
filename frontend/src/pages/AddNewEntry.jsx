@@ -149,57 +149,75 @@ function AddNewEntry() {
 
   return (
     <>
-      <Container maxW={"container.sm"}>
-        <VStack spacing={8}>
-          <Heading as="h1" size="2xl" textAlign={"center"} mb={8}>
+      <Container maxW={"container.sm"} px={{ base: 4, md: 6 }} py={{ base: 4, md: 8 }}>
+        <VStack spacing={{ base: 6, md: 8 }}>
+          <Heading as="h1" size={{ base: 'lg', md: '2xl' }} textAlign={"center"} mb={{ base: 4, md: 8 }}>
             Add a New Word
           </Heading>
-          <Box w={"full"} bg={useColorModeValue("white", "gray.800")} p={6} rounded={"lg"} shadow={"md"}>
-            <Text fontSize="xl">Creating a New Entry</Text>
+          <Box
+            w={"full"}
+            bg={useColorModeValue("white", "gray.800")}
+            p={{ base: 4, md: 6 }}
+            rounded={"lg"}
+            shadow={"md"}
+          >
+            <Text fontSize={{ base: 'md', md: 'xl' }} mb={4}>Creating a New Entry</Text>
             <VStack spacing={4}>
               <Input
                 placeholder="Word"
                 name="word"
                 value={newWord.word}
                 onChange={(e) => setNewWord({ ...newWord, word: e.target.value })}
+                size={{ base: 'md', md: 'lg' }}
+                fontSize={{ base: 'md', md: 'lg' }}
               />
               <Input
                 placeholder="Meaning"
                 name="meaning"
                 value={newWord.meaning}
                 onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
+                size={{ base: 'md', md: 'lg' }}
+                fontSize={{ base: 'md', md: 'lg' }}
               />
               <Input
                 placeholder="other translations (comma or semicolon separated)"
                 name="translations"
                 value={translationsRaw}
                 onChange={(e) => setTranslationsRaw(e.target.value)}
+                size={{ base: 'md', md: 'lg' }}
+                fontSize={{ base: 'md', md: 'lg' }}
               />
-              <Select
-                isMulti // Enable multi-select
-                options={languages.map((language) => ({
-                  value: language.code,
-                  label: language.name,
-                }))}
-                placeholder="Select Languages"
-                onChange={handleLanguageChange} // Handle language selection
-                value={newWord.language.map((code) => ({
-                  value: code,
-                  label: languages.find((lang) => lang.code === code)?.name || code,
-                }))}
-                styles={customStyles} // Apply custom styles
-              />
+              <Box w="100%">
+                <Select
+                  isMulti
+                  options={languages.map((language) => ({
+                    value: language.code,
+                    label: language.name,
+                  }))}
+                  placeholder="Select Languages"
+                  onChange={handleLanguageChange}
+                  value={newWord.language.map((code) => ({
+                    value: code,
+                    label: languages.find((lang) => lang.code === code)?.name || code,
+                  }))}
+                  styles={customStyles}
+                />
+              </Box>
               <Textarea
                 placeholder="Description"
                 name="description"
                 value={newWord.description}
                 onChange={(e) => setNewWord({ ...newWord, description: e.target.value })}
+                minH={{ base: '80px', md: '100px' }}
+                fontSize={{ base: 'md', md: 'lg' }}
               />
               <Textarea
                 placeholder="Example"
                 name="example"
                 value={newWord.example}
                 onChange={(e) => setNewWord({ ...newWord, example: e.target.value })}
+                minH={{ base: '120px', md: '150px' }}
+                fontSize={{ base: 'md', md: 'lg' }}
               />
               <AudioRecorder
                 onAudioReady={handleAudioReady}
@@ -210,6 +228,9 @@ function AddNewEntry() {
                 colorScheme="teal"
                 onClick={handleAddWord}
                 w={"full"}
+                size={{ base: 'lg', md: 'lg' }}
+                h={{ base: '50px', md: '60px' }}
+                fontSize={{ base: 'lg', md: 'xl' }}
               >
                 Add Word
               </Button>
