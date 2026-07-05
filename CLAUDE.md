@@ -142,3 +142,83 @@ Backend `.env` file needs:
 ## Testing
 
 No test suite is currently configured. Tests would need to be added for both frontend and backend.
+
+## Audio Pronunciation System
+
+**Architecture:** Filesystem-based storage (zero cost)
+- Audio files stored in `backend/uploads/audio/` directory
+- Metadata (filename, size, mimetype, uploadedAt) stored in Word model
+- Files served statically via Express at `/uploads/audio/` with 30-day browser cache
+- Multer middleware handles uploads with 5MB limit and audio-only validation
+
+**Frontend Features:**
+- `AudioRecorder.jsx` component with live waveform visualization during recording
+- Mobile-optimized UI with touch-friendly buttons (50-60px height)
+- Recording timer with pulsing badge
+- Upload from file or record directly from microphone
+- `WaveformVisualizer.jsx` provides real-time audio visualization using Web Audio API
+
+**API Endpoints:**
+- `POST /api/words/:id/audio` - Upload audio file (requires JWT auth)
+- `DELETE /api/words/:id/audio` - Delete audio file
+
+**Scalability Notes:**
+- Current solution handles 100-10,000 users with filesystem storage
+- Files persist on server disk (ephemeral on platforms like Render/Heroku)
+- For production at scale, migrate to Cloudflare R2 or AWS S3
+- No additional environment variables required
+
+## Future Improvements & Roadmap
+
+### Morphological Submodule System for Agglutinated Languages
+
+**Problem:** Kikongo and other Bantu languages are highly agglutinative, meaning words are formed by combining multiple morphemes (roots, prefixes, suffixes). Currently, each inflected form is stored as a separate word entry, leading to:
+- Data redundancy (same root stored hundreds of times)
+- Difficult maintenance (updating a root requires changing all inflected forms)
+- Inefficient search (must generate all possible forms)
+- Loss of linguistic structure information
+
+**Proposed Solution:** Store words as **composable submodules** with morphological decomposition:
+
+```javascript
+// Example: "tunamwonile" (we saw him/her)
+// Current: stored as single word entry
+// Proposed: stored as composition of submodules
+
+{
+  root: "mon" (to see),
+  submodules: [
+    { type: "subject_prefix", value: "tu", meaning: "we (1st person plural)" },
+    { type: "tense", value: "na", meaning: "recent past tense" },
+    { type: "object_prefix", value: "mw", meaning: "him/her (class 1)" },
+    { type: "root", value: "on", meaning: "see" },
+    { type: "perfective", value: "ile", meaning: "completed action" }
+  ],
+  word: "tunamwonile",
+  meaning: "we saw him/her",
+  language: "kikongo"
+}
+```
+
+**Benefits:**
+- **Reduced storage:** Store root once, generate inflections on-the-fly
+- **Better search:** Search by any morpheme (all verbs with "tu-" prefix)
+- **Educational value:** Users learn word structure, not just translations
+- **Linguistic accuracy:** Preserves grammatical information
+- **Easier maintenance:** Update root meaning once, all forms inherit changes
+
+**Implementation Considerations:**
+- Extend Word model with `submodules` array field
+- Create morpheme database (subject prefixes, object markers, tense markers, etc.)
+- Update lemmatizer to decompose words into submodules during import
+- Add UI to visualize morphological structure on word detail page
+- Create submodule search/filter functionality
+- Consider storing both flat word + decomposed structure for backward compatibility
+
+**Priority:** Medium (after core features are stable)
+**Complexity:** High (requires linguistic expertise + complex data modeling)
+
+**Related Files:**
+- `backend/utils/kikongoLemmatizer.js` - Already handles basic morphological analysis
+- `backend/models/word.model.js` - Would need schema extension
+- `frontend/src/pages/DetailPage.jsx` - Could show morpheme breakdown visually

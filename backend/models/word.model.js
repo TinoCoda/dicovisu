@@ -26,8 +26,16 @@ const wordSchema = new mongoose.Schema({
         required: false,
     },
 
-    // Audio pronunciation
+    // Audio pronunciation (stored in Cloudflare R2)
     audio: {
+        key: {
+            type: String,
+            required: false
+        },
+        url: {
+            type: String,
+            required: false
+        },
         filename: {
             type: String,
             required: false

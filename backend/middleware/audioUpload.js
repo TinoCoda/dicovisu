@@ -1,30 +1,9 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-// Recreate __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads', 'audio');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadsDir);
-    },
-    filename: (req, file, cb) => {
-        // Use wordId from params or generate unique filename
-        const wordId = req.params.id || Date.now();
-        const ext = path.extname(file.originalname);
-        cb(null, `${wordId}${ext}`);
-    }
-});
+// Use memory storage instead of disk storage
+// Files will be stored in memory as Buffer objects
+// Then uploaded to Cloudflare R2 in the controller
+const storage = multer.memoryStorage();
 
 // File filter - only accept audio files
 const fileFilter = (req, file, cb) => {

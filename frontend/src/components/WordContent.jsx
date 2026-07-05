@@ -100,7 +100,7 @@ function WordContent({ selectedWord, onWordClick }) {
             </HStack>
             <Box w="100%">
               <audio
-                src={`/uploads/audio/${selectedWord.audio.filename}`}
+                src={selectedWord.audio.url || `/uploads/audio/${selectedWord.audio.filename}`}
                 controls
                 style={{
                   width: '100%',

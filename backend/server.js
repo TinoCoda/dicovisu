@@ -41,11 +41,8 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
-// Serve audio files with caching headers
-app.use('/uploads/audio', express.static(path.join(__root, 'backend', 'uploads', 'audio'), {
-    maxAge: '30d', // Cache for 30 days (audio files don't change)
-    immutable: true
-}));
+// Audio files are now served from Cloudflare R2 (cloud storage)
+// No need to serve static files from local filesystem anymore
 
 app.use('/api/words', wordRoutes);
 app.use('/api/languages', languageRoute);

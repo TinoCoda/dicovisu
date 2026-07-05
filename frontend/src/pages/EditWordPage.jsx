@@ -22,7 +22,8 @@ function EditWordPage() {
   );
   const [audioFile, setAudioFile] = useState(null);
   const [audioUrl, setAudioUrl] = useState(
-    selectedWord.audio?.filename ? `/uploads/audio/${selectedWord.audio.filename}` : null
+    selectedWord.audio?.url ||
+    (selectedWord.audio?.filename ? `/uploads/audio/${selectedWord.audio.filename}` : null)
   );
 
   const handleSave = async () => {

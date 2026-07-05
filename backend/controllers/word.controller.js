@@ -1,12 +1,9 @@
 import mongoose from "mongoose";
 import Word from "../models/word.model.js";
 import { isWordInDictionary } from "../utils/kikongoLemmatizer.js";
-import fs from 'fs';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import r2Client, { R2_BUCKET_NAME, R2_PUBLIC_URL } from '../config/r2.js';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const deduplicateSentences = (text) => {
     if (!text) return '';
@@ -504,22 +501,46 @@ export const uploadAudio = async (req, res) => {
 
         const word = await Word.findById(id);
         if (!word) {
-            // Delete uploaded file if word doesn't exist
-            fs.unlinkSync(req.file.path);
             return res.status(404).json({ success: false, message: "Word not found" });
         }
 
-        // Delete old audio file if it exists
-        if (word.audio?.filename) {
-            const oldFilePath = path.join(__dirname, '..', 'uploads', 'audio', word.audio.filename);
-            if (fs.existsSync(oldFilePath)) {
-                fs.unlinkSync(oldFilePath);
+        // Generate unique filename using wordId and original extension
+        const ext = path.extname(req.file.originalname);
+        const filename = `${id}${ext}`;
+        const key = `audio/${filename}`; // Store in 'audio/' prefix in R2 bucket
+
+        // Delete old audio file from R2 if it exists
+        if (word.audio?.key) {
+            try {
+                await r2Client.send(new DeleteObjectCommand({
+                    Bucket: R2_BUCKET_NAME,
+                    Key: word.audio.key
+                }));
+            } catch (deleteError) {
+                console.error("Error deleting old audio from R2:", deleteError);
+                // Continue anyway - old file might already be deleted
             }
         }
 
+        // Upload new file to R2
+        await r2Client.send(new PutObjectCommand({
+            Bucket: R2_BUCKET_NAME,
+            Key: key,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype,
+            ContentLength: req.file.size
+        }));
+
+        // Construct public URL for the audio file
+        const audioUrl = R2_PUBLIC_URL
+            ? `${R2_PUBLIC_URL}/${key}`  // Use custom domain if configured
+            : `https://${R2_BUCKET_NAME}.r2.dev/${key}`; // Default R2 public URL
+
         // Update word with new audio metadata
         word.audio = {
-            filename: req.file.filename,
+            key: key,              // R2 object key
+            url: audioUrl,         // Public URL
+            filename: filename,    // Original filename for reference
             mimetype: req.file.mimetype,
             size: req.file.size,
             uploadedAt: new Date()
@@ -532,14 +553,10 @@ export const uploadAudio = async (req, res) => {
             message: "Audio uploaded successfully",
             data: {
                 word,
-                audioUrl: `/uploads/audio/${req.file.filename}`
+                audioUrl: audioUrl
             }
         });
     } catch (error) {
-        // Clean up uploaded file on error
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
         console.error("Error in uploadAudio:", error);
         res.status(500).json({ success: false, message: error.message });
     }
@@ -559,14 +576,19 @@ export const deleteAudio = async (req, res) => {
             return res.status(404).json({ success: false, message: "Word not found" });
         }
 
-        if (!word.audio?.filename) {
+        if (!word.audio?.key) {
             return res.status(404).json({ success: false, message: "No audio file to delete" });
         }
 
-        // Delete the audio file from filesystem
-        const filePath = path.join(__dirname, '..', 'uploads', 'audio', word.audio.filename);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Delete the audio file from R2
+        try {
+            await r2Client.send(new DeleteObjectCommand({
+                Bucket: R2_BUCKET_NAME,
+                Key: word.audio.key
+            }));
+        } catch (deleteError) {
+            console.error("Error deleting audio from R2:", deleteError);
+            // Continue anyway to clean up metadata even if file is already gone
         }
 
         // Remove audio metadata from word
