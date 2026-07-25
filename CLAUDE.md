@@ -61,7 +61,7 @@ npm run preview      # Preview production build
 - Words support `language` as an array (multilingual entries)
 
 **Special Features:**
-- **Kikongo Lemmatizer** (`backend/utils/kikongoLemmatizer.js`): Advanced morphological analyzer that handles:
+- **Kikongo Language Cluster Lemmatizer** (`backend/utils/lemmatizer.js`): Advanced morphological analyzer that handles:
   - Agglutinative verb structures (subject + object + verb stem)
   - Resultative/perfect tense (subject + 'me' + verb)
   - h/v phonological alternation
@@ -113,7 +113,7 @@ npm run preview      # Preview production build
 6. Original request retried with new token
 
 ### Word Search with Lemmatization
-- Word controller imports `isWordInDictionary` from `kikongoLemmatizer.js`
+- Word controller imports `isWordInDictionary` from `lemmatizer.js`
 - Search considers inflected forms by generating candidate stems
 - Supports agglutinative morphology typical of Kikongo verbs and nouns
 
@@ -219,6 +219,6 @@ No test suite is currently configured. Tests would need to be added for both fro
 **Complexity:** High (requires linguistic expertise + complex data modeling)
 
 **Related Files:**
-- `backend/utils/kikongoLemmatizer.js` - Already handles basic morphological analysis
+- `backend/utils/lemmatizer.js` - Already handles basic morphological analysis
 - `backend/models/word.model.js` - Would need schema extension
 - `frontend/src/pages/DetailPage.jsx` - Could show morpheme breakdown visually
