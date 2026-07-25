@@ -9,7 +9,7 @@ import { useCountryStore } from '../store/countries';
 
 import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
-import { getLemmaSearchTerms } from '../utils/kikongoLemmatizer';
+import { getLemmaSearchTerms } from '../utils/lemmatizer';
 
 console.log("load HomePage.jsx");
 //console.log("baseStore", baseStore.getState());

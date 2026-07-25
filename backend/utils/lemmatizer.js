@@ -1,5 +1,5 @@
 /**
- * Kikongo Lemmatizer — backend utility
+ * Kikongo Language Cluster Lemmatizer — backend utility
  *
  * Used during statistics computation to avoid counting inflected verb forms
  * (e.g. "nakusididi") as missing dictionary words when the bare verb stem
@@ -24,6 +24,7 @@ const VERB_SUBJECT_PREFIXES = [
     'ni', 'na', 'wu', 'wa',
     'ka', 'tu', 'ta', 'lu', 'ba',
     'n',
+    't',
     'p',
     'u',
     'ki', 'bi', 'di', 'zi', 'yi','ma','mi' // some sources list these as subject prefixes for class 4/5, but they are very short and risky to strip, so we will only consider them as nominal prefixes in this implementation

@@ -63,6 +63,7 @@ const VERB_SUBJECT_PREFIXES = [
     'ni', 'na', 'wu', 'wa',       // 2-char
     'ka', 'tu', 'ta', 'lu', 'ba', // 2-char
     'n',                          // 1-char: 1sg before consonant (nhondidi)
+    't',                          // 1-char: 1sg before consonant (tsonikidi in ibinda and some angolan/congolese dialects)
     'p',                          // 1-char: 1sg before h/v (phundidi → vundidi/hundidi)
     'u',                          // 1-char last
 ];
