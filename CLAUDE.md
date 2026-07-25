@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Visual-Dico is a multilingual dictionary application built with the MERN stack, specialized for Kikongo and other African languages. It features advanced linguistic capabilities including lemmatization, word relationships, and AI-enhanced search functionality.
+Visual-Dico is a multilingual dictionary application built with the MERN stack, specialized for Kikongo Language Cluster and other African languages. It features advanced linguistic capabilities including lemmatization, word relationships, and AI-enhanced search functionality.
 
 ## Development Commands
 
