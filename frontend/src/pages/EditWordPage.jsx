@@ -49,7 +49,13 @@ function EditWordPage() {
               duration: 3000,
               isClosable: true,
             });
-            setSelectedWord(audioResponse.data.word);
+            // Update both selectedWord AND the words array in the store
+            const updatedWord = audioResponse.data.word;
+            setSelectedWord(updatedWord);
+            // Update the word in the words array
+            useWordStore.setState((state) => ({
+              words: state.words.map((w) => (w._id === _id ? updatedWord : w))
+            }));
           }
         } catch (error) {
           toast({
@@ -88,9 +94,19 @@ function EditWordPage() {
 
   const handleDeleteAudio = async () => {
     try {
-      await useDeleteAudioEndpoint(_id);
+      const response = await useDeleteAudioEndpoint(_id);
       setAudioUrl(null);
       setAudioFile(null);
+
+      // Update both selectedWord AND the words array in the store
+      if (response.success && response.data) {
+        const updatedWord = response.data;
+        setSelectedWord(updatedWord);
+        useWordStore.setState((state) => ({
+          words: state.words.map((w) => (w._id === _id ? updatedWord : w))
+        }));
+      }
+
       toast({
         title: 'Audio deleted successfully',
         status: 'success',

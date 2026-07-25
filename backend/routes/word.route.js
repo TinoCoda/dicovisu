@@ -15,22 +15,23 @@ import {
 } from '../controllers/word.controller.js';
 
 const router = express.Router();
-router.use(verifyJWT); // Apply JWT verification middleware to all routes in this router
 
-
-router.post('/', addWord);
+// Public routes (no authentication required)
 router.get('/', getWords);
-router.put('/:id', updateWord);
-router.delete('/:id', deleteWord);
-router.get('/search',searchWordStart);
+router.get('/search', searchWordStart);
 router.get('/statistics', getStatistics);
 
-// Word relationship routes
-router.post('/:wordId/relationships', addWordRelationship);
-router.delete('/:wordId/relationships/:relatedWordId', removeWordRelationship);
+// Protected routes (authentication required)
+router.post('/', verifyJWT, addWord);
+router.put('/:id', verifyJWT, updateWord);
+router.delete('/:id', verifyJWT, deleteWord);
 
-// Audio pronunciation routes
-router.post('/:id/audio', upload.single('audio'), uploadAudio);
-router.delete('/:id/audio', deleteAudio);
+// Word relationship routes (authentication required)
+router.post('/:wordId/relationships', verifyJWT, addWordRelationship);
+router.delete('/:wordId/relationships/:relatedWordId', verifyJWT, removeWordRelationship);
+
+// Audio pronunciation routes (authentication required)
+router.post('/:id/audio', verifyJWT, upload.single('audio'), uploadAudio);
+router.delete('/:id/audio', verifyJWT, deleteAudio);
 
 export default router;

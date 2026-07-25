@@ -44,7 +44,15 @@ function AddNewEntry() {
       // If audio was recorded/uploaded, upload it now
       if (audioFile && savedWord?._id) {
         try {
-          await useUploadAudioEndpoint(savedWord._id, audioFile);
+          const audioResponse = await useUploadAudioEndpoint(savedWord._id, audioFile);
+          // Update the word in the store with the audio metadata
+          if (audioResponse.success && audioResponse.data?.word) {
+            useWordStore.setState((state) => ({
+              words: state.words.map((w) =>
+                w._id === savedWord._id ? audioResponse.data.word : w
+              )
+            }));
+          }
           toast({
             title: "Word and audio added successfully",
             status: "success",
