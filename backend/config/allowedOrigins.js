@@ -6,6 +6,6 @@ export const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
     'https://dicovisu.onrender.com',
-    'http://192.168.200.46:5000',
+    'http://192.168.200.30:5001',
 ]
 
