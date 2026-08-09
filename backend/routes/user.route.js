@@ -10,7 +10,7 @@ router.post('/register', registerLimiter, createUser);
 
 // Everything else manages OTHER users' accounts (list, edit, delete) and
 // must never be reachable without being logged in as an admin.
-router.use(verifyJWT, verifyRoles('Admin', 'superadmin'));
+router.use(verifyJWT, verifyRoles('superadmin'));
 router.get('/', getAllUsers);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);

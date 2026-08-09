@@ -5,6 +5,13 @@ import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import r2Client, { R2_BUCKET_NAME, R2_PUBLIC_URL } from '../config/r2.js';
 import path from 'path';
 
+// getStatistics does a full collection scan plus per-word regex parsing on
+// every call — cheap to recompute at 2-3k words, not something to redo on
+// every single page open. A short TTL cache keeps it fast without needing
+// invalidation hooks in every word-mutating endpoint.
+const STATISTICS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let statisticsCache = { data: null, computedAt: 0 };
+
 const deduplicateSentences = (text) => {
     if (!text) return '';
 
@@ -122,8 +129,20 @@ export const searchWordStart = async (req, res) => {
             return { $or: [{ meaning: anyRx }, { translations: anyRx }] };
         });
 
-        const directWordMatches    = await Word.find({ $or: wordStartsWithConditions });
-        const meaningMatches       = await Word.find({ $or: anywhereConditions });
+        // Example/description: contains match, filtered against direct matches below
+        const exampleConditions = termList.map(t => {
+            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const anyRx = { $regex: esc, $options: "i" };
+            return { $or: [{ example: anyRx }, { description: anyRx }] };
+        });
+
+        // None of these three queries depend on each other's results, so run
+        // them concurrently instead of as three sequential round-trips.
+        const [directWordMatches, meaningMatches, exampleMatches_raw] = await Promise.all([
+            Word.find({ $or: wordStartsWithConditions }),
+            Word.find({ $or: anywhereConditions }),
+            Word.find({ $or: exampleConditions }),
+        ]);
 
         const directCombined = [...directWordMatches, ...meaningMatches];
         const directIds = new Set();
@@ -133,13 +152,6 @@ export const searchWordStart = async (req, res) => {
             if (!directIds.has(id)) { directIds.add(id); directMatches.push(w); }
         }
 
-        // Example/description: contains match, excluding already-found words
-        const exampleConditions = termList.map(t => {
-            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const anyRx = { $regex: esc, $options: "i" };
-            return { $or: [{ example: anyRx }, { description: anyRx }] };
-        });
-        const exampleMatches_raw = await Word.find({ $or: exampleConditions });
         const exampleMatches = exampleMatches_raw.filter(w => !directIds.has(w._id.toString()));
 
         // Sort alphabetically
@@ -268,6 +280,10 @@ export const removeWordRelationship = async (req, res) => {
 
 // Get dictionary statistics
 export const getStatistics = async (req, res) => {
+    if (statisticsCache.data && Date.now() - statisticsCache.computedAt < STATISTICS_CACHE_TTL_MS) {
+        return res.status(200).json(statisticsCache.data);
+    }
+
     try {
         const words = await Word.find();
 
@@ -426,13 +442,16 @@ export const getStatistics = async (req, res) => {
             uniqueDictionaryWords: dictionaryWordsMap.size
         };
         
-        res.status(200).json({
+        const payload = {
             success: true,
             data: {
                 overall: overallStats,
                 byLanguage: result
             }
-        });
+        };
+        statisticsCache = { data: payload, computedAt: Date.now() };
+
+        res.status(200).json(payload);
     } catch (error) {
         console.error("Error in getStatistics:", error);
         res.status(500).json({ success: false, message: error.message });

@@ -1,4 +1,5 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -21,11 +22,14 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Recreate __dirname for ES modules
-const __root= path.resolve();
-console.log('Recreated __root:', __root);
-const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/|\/$/g, '').replace(/\//g, '\\');
-console.log('Recreated __dirname:', __dirname);
+// Recreate __dirname for ES modules — must stay OS-agnostic: the previous
+// hand-rolled version forced backslashes into the path, which is a Windows
+// path separator, not a POSIX one. On Linux (e.g. inside Docker) that broke
+// path.join() silently: it collapsed to a bare relative "logs"/"views"
+// segment that resolved against the process CWD instead of this directory,
+// so request logs ended up in the wrong folder and the 404 page 404'd.
+const __root = path.resolve();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
 app.use(logger);

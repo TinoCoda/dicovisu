@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Box, Center, Spinner } from '@chakra-ui/react'
 import {Route, Routes} from "react-router-dom"
 import { useAuthStore } from './store/authStore'
 
 import Navbar from './components/NavBar'
 import HomePage from './pages/HomePage'
-import AddNewEntry from './pages/AddNewEntry'
 import DetailPage from './pages/DetailPage'
-import AddNewLANG from './pages/AddNewLANG'
 import LoginPage from './pages/LoginPage'
-import EditWordPage from './pages/EditWordPage'
-import LogoutPage from './pages/LogoutPage'
-import AddWordsByJson from './pages/AddWordsByJson'
-import StatisticsPage from './pages/StatisticsPage'
-import ManageUsers from './pages/ManageUsers'
+
+// Everything below is reached by navigating from the home/search/detail
+// pages, never needed for the initial paint — split into separate chunks
+// so a plain learner never downloads the admin/CRUD bundles.
+const AddNewEntry = lazy(() => import('./pages/AddNewEntry'))
+const AddNewLANG = lazy(() => import('./pages/AddNewLANG'))
+const EditWordPage = lazy(() => import('./pages/EditWordPage'))
+const LogoutPage = lazy(() => import('./pages/LogoutPage'))
+const AddWordsByJson = lazy(() => import('./pages/AddWordsByJson'))
+const StatisticsPage = lazy(() => import('./pages/StatisticsPage'))
+const ManageUsers = lazy(() => import('./pages/ManageUsers'))
 
 
 
@@ -46,17 +50,23 @@ function App() {
     <Box minH={"100vh"}>
       <Navbar/>
       <Box px={{ base: 4, md: 8 }} py={6}>
-        <Routes>
-          <Route path='/' element={<HomePage/>} /> {/* Home page route */}
-          <Route path='/add' element={<AddNewEntry/>} />
-          <Route path='/details' element={<DetailPage/>} />
-          <Route path="/edit-word/:id" element={<EditWordPage />} />
-          <Route path='/languages' element={<AddNewLANG/>} />
-          <Route path='/bulk-import' element={<AddWordsByJson/>} />
-          <Route path='/statistics' element={<StatisticsPage/>} />
-          <Route path='/users' element={<ManageUsers/>} />
-          <Route path='/logout' element={<LogoutPage/>} />
-        </Routes>
+        <Suspense fallback={
+          <Center py={20}>
+            <Spinner color="blue.400" thickness="3px" />
+          </Center>
+        }>
+          <Routes>
+            <Route path='/' element={<HomePage/>} /> {/* Home page route */}
+            <Route path='/add' element={<AddNewEntry/>} />
+            <Route path='/details' element={<DetailPage/>} />
+            <Route path="/edit-word/:id" element={<EditWordPage />} />
+            <Route path='/languages' element={<AddNewLANG/>} />
+            <Route path='/bulk-import' element={<AddWordsByJson/>} />
+            <Route path='/statistics' element={<StatisticsPage/>} />
+            <Route path='/users' element={<ManageUsers/>} />
+            <Route path='/logout' element={<LogoutPage/>} />
+          </Routes>
+        </Suspense>
       </Box>
     </Box>)
      : (

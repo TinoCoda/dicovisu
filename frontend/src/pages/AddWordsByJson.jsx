@@ -6,7 +6,6 @@ import {
   Heading,
   Button,
   Text,
-  useColorModeValue,
   useToast,
   Progress,
   Alert,
@@ -23,6 +22,7 @@ import { useLanguageStore } from '../store/languages';
 import { useWordStore } from '../store/words';
 import { useAuthStore } from '../store/authStore';
 import { isSuperAdmin } from '../utils/roles';
+import { useReactSelectStyles } from '../utils/reactSelectTheme';
 import { useNavigate } from 'react-router-dom';
 
 function AddWordsByJson() {
@@ -40,8 +40,8 @@ function AddWordsByJson() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const roles = useAuthStore((state) => state.roles);
 
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const bgColor = 'bg-surface';
+  const borderColor = 'border-default';
 
   useEffect(() => {
     fetchLanguages();
@@ -528,56 +528,21 @@ function AddWordsByJson() {
     });
   };
 
-  const customStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: useColorModeValue('white', 'gray.700'),
-      borderColor: state.isFocused ? 'teal' : useColorModeValue('gray.300', 'gray.600'),
-      color: useColorModeValue('black', 'white'),
-      boxShadow: state.isFocused ? '0 0 0 1px teal' : 'none',
-      '&:hover': {
-        borderColor: 'teal',
-      },
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: 'black',
-      border: '1px solid white',
-      zIndex: 10,
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isFocused ? 'gray' : 'black',
-      color: 'white',
-      '&:hover': {
-        backgroundColor: 'gray',
-        color: 'white',
-      },
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: useColorModeValue('teal.100', 'teal.600'),
-      color: useColorModeValue('black', 'white'),
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      color: useColorModeValue('black', 'white'),
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: useColorModeValue('black', 'white'),
-      '&:hover': {
-        backgroundColor: useColorModeValue('teal.200', 'teal.700'),
-        color: useColorModeValue('black', 'white'),
-      },
-    }),
-  };
+  const customStyles = useReactSelectStyles();
 
   return (
     <Container maxW="container.lg" py={8}>
       <VStack spacing={6} align="stretch">
-        <Heading as="h1" size="xl" textAlign="center">
-          Bulk Import Words from JSON
+        <Heading
+          as="h1"
+          fontFamily="heading"
+          fontStyle="italic"
+          fontWeight="500"
+          size="xl"
+          textAlign="center"
+          color="text-primary"
+        >
+          Bulk Import Words
         </Heading>
 
         <Alert status="info">
@@ -637,7 +602,7 @@ function AddWordsByJson() {
             </Box>
 
             <Button
-              colorScheme="teal"
+              colorScheme="blue"
               size="lg"
               onClick={handleImport}
               isDisabled={!selectedFile || selectedLanguages.length === 0 || isProcessing}
@@ -652,7 +617,7 @@ function AddWordsByJson() {
         {isProcessing && (
           <Box>
             <Text mb={2}>Progress: {Math.round(progress)}%</Text>
-            <Progress value={progress} colorScheme="teal" size="lg" hasStripe isAnimated />
+            <Progress value={progress} colorScheme="blue" size="lg" hasStripe isAnimated />
           </Box>
         )}
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Text, VStack, Heading, useColorModeValue, Input, Button, useToast, Textarea } from "@chakra-ui/react";
+import { Box, Container, Text, VStack, Heading, Input, Button, useToast, Textarea } from "@chakra-ui/react";
 import Select from 'react-select'; // Import react-select
 import { useWordStore } from '../store/words';
 import { useLanguageStore } from '../store/languages';
 import { useCountryStore } from '../store/countries';
+import { useReactSelectStyles } from '../utils/reactSelectTheme';
 import AudioRecorder from '../components/AudioRecorder';
 import { useUploadAudioEndpoint } from '../api/words/wordApi';
 
@@ -106,68 +107,34 @@ function AddNewEntry() {
     setNewWord({ ...newWord, language: selectedLanguages });
   };
 
-  // Custom styles for react-select to improve contrast in dark mode
-  const customStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: useColorModeValue("white", "gray.700"),
-      borderColor: state.isFocused ? "teal" : useColorModeValue("gray.300", "gray.600"),
-      color: useColorModeValue("black", "white"),
-      boxShadow: state.isFocused ? "0 0 0 1px teal" : "none",
-      "&:hover": {
-        borderColor: "teal",
-      },
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: useColorModeValue("white", "gray.700"),
-      color: useColorModeValue("black", "white"),
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isFocused
-        ? useColorModeValue("teal.100", "teal.600")
-        : useColorModeValue("white", "gray.700"),
-      color: state.isFocused ? useColorModeValue("black", "white") : useColorModeValue("black", "white"),
-      "&:hover": {
-        backgroundColor: useColorModeValue("teal.100", "teal.600"),
-        color: useColorModeValue("black", "white"),
-      },
-    }),
-    multiValue: (provided) => ({
-      ...provided,
-      backgroundColor: useColorModeValue("teal.100", "teal.600"),
-      color: useColorModeValue("black", "white"),
-    }),
-    multiValueLabel: (provided) => ({
-      ...provided,
-      color: useColorModeValue("black", "white"),
-    }),
-    multiValueRemove: (provided) => ({
-      ...provided,
-      color: useColorModeValue("black", "white"),
-      "&:hover": {
-        backgroundColor: useColorModeValue("teal.200", "teal.700"),
-        color: useColorModeValue("black", "white"),
-      },
-    }),
-  };
+  const selectStyles = useReactSelectStyles();
 
   return (
     <>
       <Container maxW={"container.sm"} px={{ base: 4, md: 6 }} py={{ base: 4, md: 8 }}>
         <VStack spacing={{ base: 6, md: 8 }}>
-          <Heading as="h1" size={{ base: 'lg', md: '2xl' }} textAlign={"center"} mb={{ base: 4, md: 8 }}>
-            Add a New Word
-          </Heading>
+          <VStack spacing={1}>
+            <Heading
+              as="h1"
+              fontFamily="heading"
+              fontStyle="italic"
+              fontWeight="500"
+              size={{ base: 'lg', md: 'xl' }}
+              textAlign="center"
+              color="text-primary"
+            >
+              Longa diambu dyampa
+            </Heading>
+            <Text fontSize="sm" color="text-muted">Add a new word to the dictionary</Text>
+          </VStack>
           <Box
             w={"full"}
-            bg={useColorModeValue("white", "gray.800")}
+            bg="bg-surface"
+            border="1px solid"
+            borderColor="border-default"
             p={{ base: 4, md: 6 }}
             rounded={"lg"}
-            shadow={"md"}
           >
-            <Text fontSize={{ base: 'md', md: 'xl' }} mb={4}>Creating a New Entry</Text>
             <VStack spacing={4}>
               <Input
                 placeholder="Word"
@@ -206,7 +173,7 @@ function AddNewEntry() {
                     value: code,
                     label: languages.find((lang) => lang.code === code)?.name || code,
                   }))}
-                  styles={customStyles}
+                  styles={selectStyles}
                 />
               </Box>
               <Textarea
@@ -231,7 +198,7 @@ function AddNewEntry() {
                 onDeleteAudio={null}
               />
               <Button
-                colorScheme="teal"
+                colorScheme="blue"
                 onClick={handleAddWord}
                 w={"full"}
                 size={{ base: 'lg', md: 'lg' }}
