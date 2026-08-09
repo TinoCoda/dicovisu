@@ -10,15 +10,28 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     res.status(200).json(users);
 });
 
-// @desc    Create a new user
-// @route   POST /users
-// @access  Private
+// @desc    Create a new user (public self-registration)
+// @route   POST /users/register
+// @access  Public
 export const createUser = asyncHandler(async (req, res) => {
-    const { username, password, roles } = req.body;
+    // Deliberately not reading `roles` from the body — this is the public
+    // signup endpoint, so a self-assigned role must be structurally
+    // impossible here. Every new account starts as the schema default
+    // ('learner'); elevating a user is an explicit admin action via
+    // updateUser, never something the signup request itself can request.
+    const { username, password, name } = req.body;
 
     if (!username || !password) {
         res.status(400);
         throw new Error('Please provide username and password');
+    }
+
+    // The schema's minlength on `password` validates the stored bcrypt hash
+    // (always ~60 chars), not the plaintext — it never actually rejects a
+    // short password. Check the real input here instead.
+    if (password.length < 6) {
+        res.status(400);
+        throw new Error('Password must be at least 6 characters.');
     }
 
     const userExists = await User.findOne({ username });
@@ -29,20 +42,18 @@ export const createUser = asyncHandler(async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = roles? await User.create({
+    const user = await User.create({
         username,
         password: hashedPassword,
-        roles:roles, // Use provided roles if available
-    }):
-    await User.create({
-        username,
-        password: hashedPassword
+        name: name || '',
     });
 
     if (user) {
         res.status(201).json({
             _id: user._id,
             username: user.username,
+            name: user.name,
+            roles: user.roles,
             message: 'User created successfully',
         });
     } else {
@@ -51,17 +62,12 @@ export const createUser = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Update a user
+// @desc    Update a user (partial — only touches fields actually provided)
 // @route   PUT /users/:id
-// @access  Private
+// @access  Private (Admin)
 export const updateUser = asyncHandler(async (req, res) => {
     const { username, password, roles } = req.body;
     const userId = req.params.id;
-
-    if (!username || !password) {
-        res.status(400);
-        throw new Error('Please provide username and password');
-    }
 
     const user = await User.findById(userId);
 
@@ -70,10 +76,23 @@ export const updateUser = asyncHandler(async (req, res) => {
         throw new Error('User not found');
     }
 
-    user.username = username;
-    user.password = await bcrypt.hash(password, 10);
+    // An admin editing someone else's role shouldn't be forced to also
+    // reset that person's username/password — only touch what's provided.
+    if (username) user.username = username;
+    if (password) {
+        if (password.length < 6) {
+            res.status(400);
+            throw new Error('Password must be at least 6 characters.');
+        }
+        user.password = await bcrypt.hash(password, 10);
+    }
     if (roles) {
-        user.roles = roles; // Update roles if provided
+        // Guard against an admin accidentally locking themselves out.
+        if (req.user === user.username && !roles.includes('superadmin')) {
+            res.status(400);
+            throw new Error('You cannot change your own admin role.');
+        }
+        user.roles = roles;
     }
 
     const updatedUser = await user.save();
@@ -81,13 +100,15 @@ export const updateUser = asyncHandler(async (req, res) => {
     res.status(200).json({
         _id: updatedUser._id,
         username: updatedUser.username,
+        name: updatedUser.name,
+        roles: updatedUser.roles,
         message: 'User updated successfully',
     });
 });
 
 // @desc    Delete a user
 // @route   DELETE /users/:id
-// @access  Private
+// @access  Private (Admin)
 export const deleteUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
@@ -96,6 +117,11 @@ export const deleteUser = asyncHandler(async (req, res) => {
     if (!user) {
         res.status(404);
         throw new Error('User not found');
+    }
+
+    if (req.user === user.username) {
+        res.status(400);
+        throw new Error('You cannot delete your own account.');
     }
 
     await user.deleteOne();

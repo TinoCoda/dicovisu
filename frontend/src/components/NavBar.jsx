@@ -7,9 +7,10 @@ import { LuSun } from "react-icons/lu";
 import { DiAptana } from "react-icons/di";
 import { IoMdLogOut } from "react-icons/io";
 import { IoMdLogIn } from "react-icons/io";
-import { MdUploadFile } from "react-icons/md";
+import { MdUploadFile, MdManageAccounts } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
 import { useAuthStore } from '../store/authStore';
+import { isSuperAdmin } from '../utils/roles';
 import DikengaMark from './DikengaMark';
 
 const NavIconButton = ({ label, colorScheme = "gray", ...rest }) => (
@@ -28,7 +29,7 @@ const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const roles = useAuthStore((state) => state.roles);
-  const isSuperAdmin = roles.includes('Admin') || roles.includes('superadmin');
+  const isAdmin = isSuperAdmin(roles);
 
   return (
     <Flex
@@ -81,9 +82,14 @@ const Navbar = () => {
             <Link to={"/add"}>
               <NavIconButton label="Add a word" colorScheme="blue" icon={<CiSquarePlus />} />
             </Link>
-            {isSuperAdmin && (
+            {isAdmin && (
               <Link to={"/bulk-import"}>
                 <NavIconButton label="Bulk import words" colorScheme="teal" icon={<MdUploadFile />} />
+              </Link>
+            )}
+            {isAdmin && (
+              <Link to={"/users"}>
+                <NavIconButton label="Manage users" colorScheme="purple" icon={<MdManageAccounts />} />
               </Link>
             )}
             {isAuthenticated && (

@@ -22,6 +22,7 @@ import Select from 'react-select';
 import { useLanguageStore } from '../store/languages';
 import { useWordStore } from '../store/words';
 import { useAuthStore } from '../store/authStore';
+import { isSuperAdmin } from '../utils/roles';
 import { useNavigate } from 'react-router-dom';
 
 function AddWordsByJson() {
@@ -48,8 +49,7 @@ function AddWordsByJson() {
 
   // Check if user has superadmin role
   useEffect(() => {
-    const isSuperAdmin = roles.includes('Admin') || roles.includes('superadmin');
-    if (!isAuthenticated || !isSuperAdmin) {
+    if (!isAuthenticated || !isSuperAdmin(roles)) {
       toast({
         title: 'Access Denied',
         description: 'You need superadmin privileges to access this page.',

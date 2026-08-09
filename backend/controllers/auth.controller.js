@@ -41,11 +41,16 @@ const login = asyncHandler(async (req, res) => {
         { expiresIn: '7d' }
     )
 
-    // Create secure cookie with refresh token 
+    // Create secure cookie with refresh token
+    // Secure cookies are silently dropped by browsers over plain HTTP (this
+    // app is reachable over non-HTTPS LAN addresses in some deployments —
+    // see allowedOrigins.js), and SameSite=None is invalid without Secure.
+    // Mirror logout()'s NODE_ENV-aware flag and keep the pair consistent.
+    const isProd = process.env.NODE_ENV !== 'development';
     res.cookie('jwt', refreshToken, {
-        httpOnly: true, //accessible only by web server 
-        secure: true,//process.env.NODE_ENV !== 'development', //https
-        sameSite: 'None', //cross-site cookie 
+        httpOnly: true, //accessible only by web server
+        secure: isProd, //https
+        sameSite: isProd ? 'None' : 'Lax', //cross-site cookie in prod, Lax locally
         maxAge: 7 * 24 * 60 * 60 * 1000 //cookie expiry: set to match rT
     })
 

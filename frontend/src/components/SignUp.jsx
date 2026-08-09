@@ -1,46 +1,37 @@
 import React, { useState } from "react";
 import { Box, Button, Input, Text, Flex, VStack } from "@chakra-ui/react";
 import { useRegisterEndpoint } from "../features/users/userApi";// For API calls
+import { useAuthStore } from "../store/authStore";
 import DikengaMark from "./DikengaMark";
 
 const SignUp = ({ onSignUpSuccess }) => {
   const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
- 
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const login = useAuthStore((state) => state.login);
 
   const handleSignUp = async () => {
+    if (!(username && password && name)) {
+      setError("All fields are required.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
     try {
-      // Validate the invitation code first
-
-
-      // Simulate sign-up logic (replace with actual API call)
-      if (username && password && name) {
-        const response = await useRegisterEndpoint(username, password);
-
-        if(response.status===201){
-          setSuccess("Account created successfully! You can now log in.");
-          setError(null);
-          setTimeout(() => onSignUpSuccess(), 2000); // Switch back to login after success
-
-
-        }else{
-          console.error("SignUp error:", response);
-          setError(response.message || "Failed to create account. Please try again.");
-          setSuccess(null);
-        }
-        
-      } else {
-        setError("All fields are required.");
-        setSuccess(null);
-      }
+      // Registration only creates the account (always as a plain learner —
+      // the backend ignores any role a signup request tries to claim).
+      // Immediately log in with the same credentials so the person lands
+      // straight in the app instead of being bounced back to a blank
+      // login form they'd have to fill in a second time.
+      await useRegisterEndpoint(username, password, name);
+      await login(username, password);
     } catch (err) {
-      setError("An error occurred during sign up. Please try again.");
-      setSuccess(null);
-      console.error("Error during sign up:", err);
+      setError(err.message || "Failed to create account. Please try again.");
+      setIsSubmitting(false);
     }
   };
 
@@ -67,11 +58,6 @@ const SignUp = ({ onSignUpSuccess }) => {
             {error}
           </Text>
         )}
-        {success && (
-          <Text color="teal.400" fontSize="sm" mb="4" textAlign="center">
-            {success}
-          </Text>
-        )}
         <Input
           placeholder="Name"
           type="text"
@@ -96,7 +82,7 @@ const SignUp = ({ onSignUpSuccess }) => {
           mb="4"
           bg="bg-canvas"
         />
-        <Button colorScheme="blue" w="full" onClick={handleSignUp}>
+        <Button colorScheme="blue" w="full" onClick={handleSignUp} isLoading={isSubmitting} loadingText="Signing up...">
           Sign Up
         </Button>
         <Button variant="link" colorScheme="blue" onClick={onSignUpSuccess} mt="4">

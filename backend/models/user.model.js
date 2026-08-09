@@ -13,9 +13,15 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 6 // Optional: Enforce a minimum password length
     },
+    name: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     roles: {
-        type: [String], // Array of strings for roles
-        default: ['learner'] // Default role for new users // learner, developper, superadmin
+        type: [String],
+        enum: ['learner', 'developper', 'superadmin'],
+        default: ['learner'] // Default role for new users — never settable by the user themselves
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt timestamps
