@@ -6,6 +6,10 @@ export const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
     'https://dicovisu.onrender.com',
-    'http://192.168.200.30:5001',
+    // Raspberry Pi deployment (raspchef-local) — LAN IPs from DHCP can change
+    // between sessions, so this may need updating again if that happens.
+    'http://192.168.100.11:5001',
+    'http://raspchef-local:5001',
+    'http://raspchef-local.local:5001',
 ]
 
