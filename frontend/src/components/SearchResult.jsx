@@ -15,7 +15,7 @@ import { MdOutlineSpellcheck } from "react-icons/md";
 import { FaVolumeUp } from "react-icons/fa";
 
 // ─── Helper: highlight occurrences of `query` inside `text` ────────────────
-function HighlightedText({ text, query, fontSize = "sm", color = "gray.600" }) {
+function HighlightedText({ text, query, fontSize = "sm", color = "text-muted" }) {
   if (!text || !query) return <Text fontSize={fontSize} color={color}>{text}</Text>;
 
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -28,8 +28,8 @@ function HighlightedText({ text, query, fontSize = "sm", color = "gray.600" }) {
           <Box
             key={i}
             as="mark"
-            bg="yellow.200"
-            color="gray.800"
+            bg="teal.200"
+            color="gray.900"
             borderRadius="sm"
             px="1px"
           >
@@ -65,8 +65,8 @@ function ResultRow({ word, query, showExampleSnippet, onSelect }) {
     <ListItem
       p={0}
       borderBottom="1px solid"
-      borderColor="gray.100"
-      _hover={{ bg: "blue.50", cursor: "pointer" }}
+      borderColor="border-default"
+      _hover={{ bg: "bg-surface-raised", cursor: "pointer" }}
       onClick={handleClick}
       transition="background 0.15s"
     >
@@ -77,14 +77,14 @@ function ResultRow({ word, query, showExampleSnippet, onSelect }) {
           px={3}
           py={2}
           borderRight="1px solid"
-          borderColor="gray.200"
+          borderColor="border-default"
           display="flex"
           alignItems="center"
         >
           <HStack spacing={2}>
-            <Text fontSize="sm" fontWeight="semibold" color="blue.700" noOfLines={1}>
+            <Text fontFamily="heading" fontSize="sm" fontWeight="600" color="blue.400" noOfLines={1}>
               {query
-                ? <HighlightedText text={word.word} query={query} fontSize="sm" color="blue.700" />
+                ? <HighlightedText text={word.word} query={query} fontSize="sm" color="blue.400" />
                 : word.word
               }
             </Text>
@@ -95,16 +95,16 @@ function ResultRow({ word, query, showExampleSnippet, onSelect }) {
         </Box>
         {/* Right column — meaning / translation */}
         <Box flex="1" px={3} py={2} display="flex" flexDir="column" justifyContent="center">
-          <Text fontSize="sm" color="gray.600" noOfLines={1}>
+          <Text fontSize="sm" color="text-muted" noOfLines={1}>
             {query
-              ? <HighlightedText text={rightLabel} query={query} fontSize="sm" color="gray.600" />
+              ? <HighlightedText text={rightLabel} query={query} fontSize="sm" color="text-muted" />
               : rightLabel
             }
           </Text>
           {/* Example snippet when searching */}
           {snippet && (
-            <Box mt={1} pl={2} borderLeft="3px solid" borderColor="yellow.300">
-              <HighlightedText text={snippet} query={query} fontSize="xs" color="gray.400" />
+            <Box mt={1} pl={2} borderLeft="3px solid" borderColor="teal.400">
+              <HighlightedText text={snippet} query={query} fontSize="xs" color="text-muted" />
             </Box>
           )}
         </Box>
@@ -127,27 +127,28 @@ const SearchResult = ({ directMatches = [], exampleMatches = [], query = "", all
     if (!allWords || allWords.length === 0) return null;
     return (
       <Box
-        mt={2} w="full" bg="white" boxShadow="md" borderRadius="lg"
+        mt={2} w="full" bg="bg-surface" boxShadow="md" borderRadius="lg"
+        border="1px solid" borderColor="border-default"
         maxH="450px" maxW={{ base: "500px", md: "800px" }}
         overflowY="scroll"   // always reserve scrollbar gutter so header + rows share same width
       >
         {/* Column headers — inside the scroll container so they align perfectly with rows */}
         <HStack
           spacing={0}
-          bg="gray.50"
+          bg="bg-surface-raised"
           borderBottom="2px solid"
-          borderColor="gray.200"
+          borderColor="border-default"
           position="sticky"
           top={0}
           zIndex={1}
         >
-          <Box flex="1" px={3} py={2} borderRight="1px solid" borderColor="gray.200">
-            <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+          <Box flex="1" px={3} py={2} borderRight="1px solid" borderColor="border-default">
+            <Text fontSize="xs" fontWeight="bold" color="text-muted" textTransform="uppercase" letterSpacing="wide">
               Word
             </Text>
           </Box>
           <Box flex="1" px={3} py={2}>
-            <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+            <Text fontSize="xs" fontWeight="bold" color="text-muted" textTransform="uppercase" letterSpacing="wide">
               Meaning / Translation
             </Text>
           </Box>
@@ -168,14 +169,15 @@ const SearchResult = ({ directMatches = [], exampleMatches = [], query = "", all
   if (!hasDirectMatches && !hasExampleMatches) {
     return (
       <Box
-        mt={2} w="full" bg="white" boxShadow="md" borderRadius="lg" p={5}
+        mt={2} w="full" bg="bg-surface" boxShadow="md" borderRadius="lg" p={5}
+        border="1px solid" borderColor="border-default"
         maxW={{ base: "500px", md: "800px" }} textAlign="center"
       >
         <Text fontSize="2xl" mb={2}>🔍</Text>
-        <Text fontSize="md" fontWeight="semibold" color="gray.700">
+        <Text fontSize="md" fontWeight="semibold" color="text-primary">
           No results found for "{query}"
         </Text>
-        <Text fontSize="sm" color="gray.400" mt={1}>
+        <Text fontSize="sm" color="text-muted" mt={1}>
           Try a different spelling or a shorter fragment.
         </Text>
       </Box>
@@ -184,7 +186,8 @@ const SearchResult = ({ directMatches = [], exampleMatches = [], query = "", all
 
   return (
     <Box
-      mt={2} w="full" bg="white" boxShadow="md" borderRadius="lg"
+      mt={2} w="full" bg="bg-surface" boxShadow="md" borderRadius="lg"
+      border="1px solid" borderColor="border-default"
       maxH="520px" maxW={{ base: "500px", md: "800px" }} overflowY="auto"
     >
       {/* ── Section 1: Direct matches ──────────────────────────────────── */}
@@ -192,8 +195,8 @@ const SearchResult = ({ directMatches = [], exampleMatches = [], query = "", all
         <>
           <Box px={4} pt={3} pb={1}>
             <HStack spacing={2} align="center">
-              <Icon as={MdOutlineSpellcheck} color="blue.500" boxSize={4} />
-              <Text fontSize="xs" fontWeight="bold" color="blue.600" textTransform="uppercase" letterSpacing="wide">
+              <Icon as={MdOutlineSpellcheck} color="blue.400" boxSize={4} />
+              <Text fontSize="xs" fontWeight="bold" color="blue.400" textTransform="uppercase" letterSpacing="wide">
                 Direct matches
               </Text>
               <Badge colorScheme="blue" borderRadius="full">{directMatches.length}</Badge>
@@ -210,19 +213,19 @@ const SearchResult = ({ directMatches = [], exampleMatches = [], query = "", all
       {/* ── Divider + Section 2: Example matches ──────────────────────── */}
       {hasExampleMatches && (
         <>
-          {hasDirectMatches && <Divider />}
+          {hasDirectMatches && <Divider borderColor="border-default" />}
           <Box px={4} pt={3} pb={1}>
             <HStack spacing={2} align="center">
-              <Text fontSize="xs" fontWeight="bold" color="orange.500" textTransform="uppercase" letterSpacing="wide">
+              <Text fontSize="xs" fontWeight="bold" color="teal.400" textTransform="uppercase" letterSpacing="wide">
                 {hasDirectMatches
                   ? "📖 Also found in examples of"
                   : "🔎 No perfect match — found in examples of"}
               </Text>
-              <Badge colorScheme="orange" borderRadius="full">{exampleMatches.length}</Badge>
+              <Badge colorScheme="teal" borderRadius="full">{exampleMatches.length}</Badge>
             </HStack>
             {!hasDirectMatches && (
-              <Text fontSize="xs" color="gray.400" mt={1}>
-                <Box as="strong" color="gray.600">"{query}"</Box> doesn't have its own entry, but it appears in the examples or descriptions below. Click any word to explore.
+              <Text fontSize="xs" color="text-muted" mt={1}>
+                <Box as="strong" color="text-primary">"{query}"</Box> doesn't have its own entry, but it appears in the examples or descriptions below. Click any word to explore.
               </Text>
             )}
           </Box>

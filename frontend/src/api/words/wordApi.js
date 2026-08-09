@@ -45,7 +45,6 @@ export async function useDeleteWordEndpoint(wid) {
 
 export async function useUpdateWordEndpoint(wid, word) {
     const requestUrl = `${API_BASE_URL}/words/${wid}`;
-    console.log("useUpdateWordEndpoint", requestUrl," ", word);
     try {
         const response = await axiosApi.put(requestUrl, word, {
             headers: {
@@ -73,7 +72,6 @@ export async function useSearchWordEndpoint(terms) {
 // Add relationship between words
 export async function useAddRelationshipEndpoint(wordId, relatedWordId, relationshipType) {
     const requestUrl = `${API_BASE_URL}/words/${wordId}/relationships`;
-    console.log('Adding relationship:', { wordId, relatedWordId, relationshipType, requestUrl });
     try {
         const response = await axiosApi.post(requestUrl, {
             relatedWordId,
@@ -83,7 +81,6 @@ export async function useAddRelationshipEndpoint(wordId, relatedWordId, relation
                 'Content-Type': 'application/json'
             }
         });
-        console.log('Add relationship response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Add relationship error:', error.response?.data || error.message);

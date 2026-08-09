@@ -29,15 +29,7 @@ console.log('Recreated __dirname:', __dirname);
 
 app.use(express.json());
 app.use(logger);
-app.use(cors(corsOptions)); // ✅ Uncomment CORS
-
-app.use((req, res, next) => {
-    const realOrigin = req.headers['x-real-origin'];
-    if (realOrigin) {
-      console.log('Detected real origin via proxy:', realOrigin);
-    }
-    next();
-});
+app.use(cors(corsOptions));
 
 app.use(cookieParser());
 

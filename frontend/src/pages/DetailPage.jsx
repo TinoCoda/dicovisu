@@ -19,36 +19,21 @@ function DetailPage() {
     }
   }, [fetchWords, words.length]);
 
-  // Log when selectedWord changes to verify reactivity
+  // Scroll to top whenever the displayed word changes
   useEffect(() => {
-    console.log("🔄 selectedWord changed to:", selectedWord?.word, selectedWord?._id);
-    // Scroll to top when word changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedWord]);
-
-  console.log("selectedWord", selectedWord);
 
   const handleEdit = () => {
     navigate(`/edit-word/${selectedWord._id}`);
   };
 
   const handleWordClick = (wordId) => {
-    console.log('🔵 Clicking on related word with ID:', wordId);
-    console.log('📊 Current words in store:', words.length);
-    
     const word = words.find(w => w._id === wordId);
     if (word) {
-      console.log('✅ Found word:', word.word);
-      console.log('📝 Word details:', {
-        _id: word._id,
-        word: word.word,
-        meaning: word.meaning,
-        relatedWordsCount: word.relatedWords?.length || 0
-      });
       setSelectedWord(word);
     } else {
-      console.error('❌ Word not found with ID:', wordId);
-      console.error('Available word IDs:', words.map(w => w._id));
+      console.error('Related word not found in store:', wordId);
     }
   };
 
@@ -59,12 +44,19 @@ function DetailPage() {
         <Box textAlign="center">
           <WordTitle word={selectedWord.word} />
         </Box>
-        
+
         {/* Word Content - Full width but contained */}
-        <Box>
+        <Box
+          w="100%"
+          bg="bg-surface"
+          border="1px solid"
+          borderColor="border-default"
+          borderRadius="lg"
+          p={{ base: 4, md: 6 }}
+        >
           <WordContent selectedWord={selectedWord} onWordClick={handleWordClick} />
         </Box>
-        
+
         {/* Action Buttons - Centered */}
         <HStack spacing={4} justify="center" pt={4}>
           <Button

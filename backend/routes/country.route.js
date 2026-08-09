@@ -5,8 +5,8 @@ import { getCountries,addCountry } from "../controllers/country.controller.js";
 import express from "express";
 const router = express.Router();
 
-// Apply JWT verification middleware to this route
-router.use(verifyJWT); // Uncomment this line to enable JWT verification for this route
+// Require a logged-in session for all country management.
+router.use(verifyJWT);
 router.get("/", getCountries);
 router.post("/", addCountry);
 

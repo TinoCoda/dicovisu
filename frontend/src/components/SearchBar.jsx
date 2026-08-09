@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Input, Button, InputGroup, InputRightElement, VStack } from "@chakra-ui/react";
+import { Input, Button, InputGroup, InputLeftElement, InputRightElement, VStack } from "@chakra-ui/react";
+import { LuSearch } from "react-icons/lu";
 
 const DEBOUNCE_MS = 350;
 
@@ -25,14 +26,21 @@ function SearchBar({ onSearch }) {
 
   return (
     <VStack spacing={4} width="100%" maxW="md">
-      <InputGroup>
+      <InputGroup size="lg">
+        <InputLeftElement pointerEvents="none" color="text-muted">
+          <LuSearch />
+        </InputLeftElement>
         <Input
           placeholder="tomb' liambu..."
           value={query}
           onChange={handleType}
+          bg="bg-surface"
+          borderColor="border-default"
+          _hover={{ borderColor: "blue.300" }}
+          pr="6rem"
         />
-        <InputRightElement width="4.5rem">
-          <Button colorScheme="blue" onClick={handleClick}>
+        <InputRightElement width="5.5rem" pr={1}>
+          <Button colorScheme="blue" size="sm" onClick={handleClick}>
             Tomb'
           </Button>
         </InputRightElement>

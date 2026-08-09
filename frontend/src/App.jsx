@@ -1,4 +1,5 @@
-import { Box, useColorModeValue, VStack } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import { Box, Center, Spinner } from '@chakra-ui/react'
 import {Route, Routes} from "react-router-dom"
 import { useAuthStore } from './store/authStore'
 
@@ -20,27 +21,44 @@ import StatisticsPage from './pages/StatisticsPage'
 
 function App() {
 
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, refresh } = useAuthStore();
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  // Try to restore a session from the httpOnly refresh cookie before deciding
+  // whether to show the login screen — otherwise every page reload bounces an
+  // already-logged-in user back to /login while a valid cookie sits unused.
+  useEffect(() => {
+    refresh().finally(() => setIsCheckingSession(false));
+  }, []);
+
+  if (isCheckingSession) {
+    return (
+      <Center minH="100vh" bg="bg-canvas">
+        <Spinner color="blue.400" thickness="3px" />
+      </Center>
+    );
+  }
 
   return (
     <>
      { isAuthenticated && user ? (
-    <Box bg={useColorModeValue("gray.200","gray.700")} p={8} h={"100vh"}>
+    <Box minH={"100vh"}>
       <Navbar/>
-      <Routes>
-        <Route path='/' element={<HomePage/>} /> {/* Home page route */}
-        <Route path='/add' element={<AddNewEntry/>} />
-        <Route path='/details' element={<DetailPage/>} />
-        <Route path="/edit-word/:id" element={<EditWordPage />} />
-        <Route path='/languages' element={<AddNewLANG/>} />
-        <Route path='/bulk-import' element={<AddWordsByJson/>} />
-        <Route path='/statistics' element={<StatisticsPage/>} />
-        <Route path='/logout' element={<LogoutPage/>} />
-        
-      </Routes>
+      <Box px={{ base: 4, md: 8 }} py={6}>
+        <Routes>
+          <Route path='/' element={<HomePage/>} /> {/* Home page route */}
+          <Route path='/add' element={<AddNewEntry/>} />
+          <Route path='/details' element={<DetailPage/>} />
+          <Route path="/edit-word/:id" element={<EditWordPage />} />
+          <Route path='/languages' element={<AddNewLANG/>} />
+          <Route path='/bulk-import' element={<AddWordsByJson/>} />
+          <Route path='/statistics' element={<StatisticsPage/>} />
+          <Route path='/logout' element={<LogoutPage/>} />
+        </Routes>
+      </Box>
     </Box>)
      : (
-      <Box bg={useColorModeValue("gray.200","gray.700")} p={0} h={"100vh"}>
+      <Box minH={"100vh"}>
           <LoginPage/>
       </Box>
     )}

@@ -8,71 +8,54 @@ const API_BASE_URL = '/api'; // früher war's 'http://localhost:5000/api'
 
 export async function useLoginEndpoint(username, password) {
     const requestUrl = `${API_BASE_URL}/auth/login`;
-    
-    console.log("Attempting to log in with username/api: ", username); // Debugging log
-    console.log("Attempting to log in with password/api: ","*****"); // Debugging log
 
     try {
-        console.log("logging in...");
-        const response = await axios.post(requestUrl, 
-        { username, 
-          password 
+        const response = await axios.post(requestUrl,
+        { username,
+          password
         },
         {
             withCredentials: true // Necessary to receive cookies
         });
 
         if(response.status == 200) {
-            //accessToken=response.data.accessToken; 
             baseStore.getState().setToken(response.data.accessToken); // Update the global store
-            //const localAccessToken =baseStore.getState().token; // Get the access token from the global store
-            
             baseStore.getState().setUser(response.data.username); // Update the user in the global store
             baseStore.getState().setIsAuthenticated(true); // Update the authentication status in the global store
-            console.log("User authenticated:", baseStore.getState().user);
-            // Update Zustand store with the new access token
-            ////localStorage.setItem('accessToken', baseStore.getState().token); // Optionally store in localStorage
-
         }else{
-            console.error("Login failed with status:", response.status);
             baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
             baseStore.getState().setUser(null); // Clear user data in the global store
-            console.log("User not authenticated, clearing user data");
         }
         return response;
     } catch (error) {
-       
         baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
         baseStore.getState().setUser(null); // Clear user data in the global store
-        console.log("User not authenticated, clearing user data");
         throw new Error(error.message || 'Login failed');
     }
 }
 
 export async function useRefreshEndpoint() {
-    console.log("Refreshing access token...");
     const requestUrl = `${API_BASE_URL}/auth/refresh`;
     try {
         const response = await axios.get(requestUrl, {
             withCredentials: true, // Needed to send the HttpOnly cookie
         });
-      
 
-        const newAccessToken = response.data.accessToken;
-        
-        if (!newAccessToken) {
+        const { accessToken, username, roles } = response.data;
+
+        if (!accessToken) {
             baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
             throw new Error('No access token received from refresh endpoint');
         }
 
         // Update the Zustand store
-        baseStore.getState().setToken(newAccessToken); // Update the global store
-        
-        baseStore.getState().setIsAuthenticated(true); // Ensure the user is authenticated
+        baseStore.getState().setToken(accessToken);
+        baseStore.getState().setUser(username);
+        baseStore.getState().setIsAuthenticated(true);
 
-        return newAccessToken;
+        return { accessToken, username, roles };
     } catch (error) {
-        throw new Error(`${error.message}\n${error.stack}` || 'Refresh token failed');
+        throw new Error(error.message || 'Refresh token failed');
     }
 }
 
@@ -83,11 +66,8 @@ export async function useLogoutEndpoint() {
         baseStore.getState().setToken(null); // Clear the token in the global store
         baseStore.getState().setIsAuthenticated(false); // Update the authentication status in the global store
         baseStore.getState().setUser(null); // Clear user data in the global store
-        console.clear(); // Clear console logs
         localStorage.clear(); // Clear local storage
-        console.log("User logged out, clearing user data");
-        console.log(baseStore.getState().user);
-        
+
         return response;
     } catch (error) {
         throw new Error(error.message || 'Logout failed');

@@ -14,35 +14,18 @@ export const useWordStore =create((set) => ({
     words: [],
     setWords: (words) => set({words}),
     addWord: async (word) => {
-        console.log('🔵 addWord called with:', JSON.stringify(word, null, 2));
         try{
-            console.log('Checking validation...');
             if(!word.word || !word.meaning || !word.language){
-                console.log('❌ Validation failed');
                 return ({ success:false, message: "Please fill all required fields", word: null });
             }
-            console.log('✓ Validation passed, calling API endpoint...');
             const response = await useAddWordEndpoint(word);
-
-            console.log("addWord API response (type):", typeof response);
-            console.log("addWord API response (data):", JSON.stringify(response, null, 2));
-            
             const data = await response;
-            console.log("After await - data:", JSON.stringify(data, null, 2));
-            console.log("data.data:", JSON.stringify(data.data, null, 2));
-            
+
             set((state) => ({words: [...state.words, data.data]}))
-            console.log('✓ Word added to store');
-            
-            const returnValue = {success:true, message:'Word added successfully', word: data.data};
-            console.log('Returning:', JSON.stringify(returnValue, null, 2));
-            return returnValue;
+
+            return {success:true, message:'Word added successfully', word: data.data};
 
         }catch(error){
-            console.log('💥 addWord caught error:', error);
-            console.log('Error response:', error.response);
-            console.log('Error status:', error.response?.status);
-            
             var offlineNewWords=JSON.parse(localStorage.getItem('newWords')) ||[];
             const offlineNewWordsSet=new Set(offlineNewWords.map((w)=>w.word));
             offlineNewWordsSet.add(word);
@@ -60,15 +43,11 @@ export const useWordStore =create((set) => ({
             let errorMessage = error.message;
             if (error.response?.status === 409) {
                 errorMessage = 'Word already exists in database';
-                console.log('Status 409 - Word already exists');
             } else if (error.message) {
                 errorMessage = error.message.split(' url=')[0]; // Remove URL from error message
             }
 
-            console.log(`Error message: ${errorMessage}`);
-            const returnValue = {success:false, message: errorMessage, word: null};
-            console.log('Returning error:', JSON.stringify(returnValue, null, 2));
-            return returnValue;
+            return {success:false, message: errorMessage, word: null};
 
         }
 
@@ -92,7 +71,6 @@ export const useWordStore =create((set) => ({
                     if (response.success && response.data) {
                         set((state) => ({ words: [...state.words, response.data] }));
                         successfulWords.push(word);
-                        console.log(`✓ Synced offline word: ${word.word}`);
                     } else {
                         failedWords.push(word);
                         console.warn(`Failed to sync word: ${word.word}`);
@@ -107,7 +85,6 @@ export const useWordStore =create((set) => ({
             // Only remove successfully synced words from localStorage
             if (successfulWords.length > 0) {
                 localStorage.setItem('newWords', JSON.stringify(failedWords));
-                console.log(`Synced ${successfulWords.length} offline words, ${failedWords.length} failed`);
             }
 
             return {
@@ -128,9 +105,6 @@ export const useWordStore =create((set) => ({
         try{
             const response = await useFetchWordsEndpoint();
             const data = await response
-            console.log("fetchWords response data: ", typeof data);
-            console.log(data);
-            // can you sort data.data alphabetically here?
             // Sort data.data alphabetically by the 'word' property
             const pData = data.data.sort((a, b) => a.word.localeCompare(b.word));
             localStorage.setItem('words',JSON.stringify(pData));
@@ -150,14 +124,9 @@ export const useWordStore =create((set) => ({
                     selectedWord: updatedSelectedWord
                 };
             });
-            
-            console.log("fetchWords called");
-            console.log(data.data);
-           
-
 
         }catch(e){
-            console.log(`Run into an error: ${e.message}\n${e.stack}`);
+            console.error(`fetchWords failed, falling back to cached copy: ${e.message}`);
             const localWords=JSON.parse(localStorage.getItem('words')) ||[];
             set({words:localWords});
 
@@ -166,18 +135,9 @@ export const useWordStore =create((set) => ({
     },
     deleteWord: async (wid) =>{
         const response = await useDeleteWordEndpoint(wid);
-        
-        /*fetch(`/api/words/${wid}`,
-             {method: 'DELETE'
-
-             })*/
-
         const data = await response
-        console.log("deleteWord response data: ", typeof data); // Debugging log
-        console.log("deleteWord response data: ", data); // Debugging log
 
         if(!data.success){
-            
             return {success:false,message:data.message};
         }
 
@@ -185,19 +145,7 @@ export const useWordStore =create((set) => ({
     } ,
     updateWord: async (wid, updatedWord) => {
         const response = await useUpdateWordEndpoint(wid, updatedWord);
-        console.log("updateWord response data: ", typeof response); // Debugging log
-        console.log("updateWord response data: ", response); // Debugging log
-        
-        /*fetch(`/api/words/${wid}`,
-        { method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedWord)
-        });*/
-
-        const data = response;//.json();
-        console.log(data);
+        const data = response;
         if(!data.success) return {success:false,message:data.message};
 
 

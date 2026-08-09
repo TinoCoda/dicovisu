@@ -35,10 +35,8 @@ function AddNewEntry() {
       .map(t => t.trim())
       .filter(t => t.length > 0);
     const wordToSubmit = { ...newWord, translations: translationsArray };
-    console.log("Submitting new word:", wordToSubmit);
 
     const { success, message, word: savedWord } = await addWord(wordToSubmit);
-    console.log("addWord", success, message);
 
     if (success) {
       // If audio was recorded/uploaded, upload it now

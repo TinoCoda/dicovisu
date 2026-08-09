@@ -5,7 +5,7 @@ import authController from '../controllers/auth.controller.js'
 import loginLimiter from '../middleware/loginLimiter.js'
 
 router.route('/login')
-    .post( authController.login)// loginLimiter, authController.login)
+    .post(loginLimiter, authController.login)
 
 router.route('/refresh')
     .get(authController.refresh)

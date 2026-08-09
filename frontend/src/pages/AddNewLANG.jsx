@@ -114,8 +114,6 @@ function AddNewLANG({ languageToEdit }) {
         isClosable: true,
       });
     }
-
-    console.log(newLanguage);
   }
 
   return (

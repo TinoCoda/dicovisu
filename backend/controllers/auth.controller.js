@@ -9,7 +9,6 @@ import asyncHandler from 'express-async-handler'
 // @access Public
 const login = asyncHandler(async (req, res) => {
     const { username, password } = req.body
-    console.log("login request username: ", username)
 
     if (!username || !password) {
         return res.status(400).json({ message: 'All fields are required' })
@@ -59,12 +58,10 @@ const login = asyncHandler(async (req, res) => {
 // @access Public - because access token has expired
 const refresh = (req, res) => {
     const cookies = req.cookies
-    console.log("cookies ",cookies)
 
     if (!cookies?.jwt) return res.status(401).json({ message: 'Unauthorized' })
 
     const refreshToken = cookies.jwt
-    console.log("refreshToken ",refreshToken)
 
     jwt.verify(
         refreshToken,
@@ -76,17 +73,20 @@ const refresh = (req, res) => {
 
             if (!foundUser) return res.status(401).json({ message: 'Unauthorized' })
 
+            // Must match login()'s payload shape — omitting roles here silently
+            // breaks role-gated routes/UI as soon as the 15m access token expires.
             const accessToken = jwt.sign(
                 {
                     "UserInfo": {
-                        "username": foundUser.username
+                        "username": foundUser.username,
+                        "roles": foundUser.roles
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '15m' }
             )
 
-            res.json({ accessToken })
+            res.json({ accessToken, username: foundUser.username, roles: foundUser.roles })
         })
     )
 }

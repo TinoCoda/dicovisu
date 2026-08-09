@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { VStack, Select as ChakraSelect, Text } from '@chakra-ui/react';
+import { VStack, Select as ChakraSelect, Text, Box, Badge } from '@chakra-ui/react';
 import { baseStore } from '../store/global';
 
 import { useWordStore } from '../store/words';
@@ -11,16 +11,12 @@ import SearchBar from '../components/SearchBar';
 import SearchResult from '../components/SearchResult';
 import { getLemmaSearchTerms } from '../utils/lemmatizer';
 
-console.log("load HomePage.jsx");
-//console.log("baseStore", baseStore.getState());
-
 const HomePage = () => {
-  console.log("load HomePage");
   const { fetchWords, addOfflineWords, words, searchWord, setSelectedWord,
           wrappedWords, setWrappedWords, wrappedSearchResults, setWrappedSearchResults
    } = useWordStore();
 
-   const { login,logout,refresh, isAuthenticated,token } = useAuthStore();
+   const { login,logout, isAuthenticated,token } = useAuthStore();
    const { fetchCountries } = useCountryStore();
 
 
@@ -34,7 +30,8 @@ const HomePage = () => {
  
 
   useEffect(() => {
-    refresh(); // Always refresh auth token
+    // Session bootstrap (refresh from the httpOnly cookie) now happens once at
+    // App mount, before this page can even render — no need to repeat it here.
 
     // Guard every fetch: only hit the API on first load, not on every navigation.
     // Without these guards, every return to "/" re-fetched all data and
@@ -51,8 +48,6 @@ const HomePage = () => {
     }
   }, []); // empty deps — all store actions are stable Zustand refs
 
-  console.log("countries", useCountryStore.getState().countries);
- 
   const handleSearch = async (query) => {
     if (!query || query.trim() === "") {
       // Empty search: show total count
@@ -69,8 +64,7 @@ const HomePage = () => {
       }
       return;
     }
-    const { terms, isKikongo } = getLemmaSearchTerms(query.trim());
-    console.log(`Search [${isKikongo ? 'kikongo' : 'french'}] terms:`, terms);
+    const { terms } = getLemmaSearchTerms(query.trim());
     const responseObject = await searchWord(terms, selectedLanguage);
     if (!responseObject?.success) {
       console.error("Search failed:", responseObject?.message);
@@ -82,18 +76,14 @@ const HomePage = () => {
   };
 
   const handleSelect = (word) => {
-    console.log("Selected word:", word);
     setSelectedWord(word);
   };
 
   const handleLanguageChange = (e) => {
     const languageCode = e.target.value;
-    console.log("current Language:", baseStore.getState().language);
     baseStore.getState().setLanguage(languageCode);
-    console.log(" Language after selection:", baseStore.getState().language);
-    
 
-    setSelectedLanguage(languageCode); 
+    setSelectedLanguage(languageCode);
     const filteredWords = words.filter((word) => word.language.includes(languageCode));
     if(filteredWords.length>0){
       setEntriesCount(filteredWords.length);
@@ -104,11 +94,26 @@ const HomePage = () => {
 
   };
 
+  const hasResults = searchResults.directMatches.length > 0 || searchResults.exampleMatches.length > 0;
+
   return (
-    <>
-    
-      <VStack spacing={4}>
-  
+    <VStack spacing={6} pt={{ base: 4, md: 10 }}>
+      <VStack spacing={1} textAlign="center">
+        <Text
+          fontFamily="heading"
+          fontStyle="italic"
+          fontSize={{ base: "2xl", md: "4xl" }}
+          fontWeight="500"
+          color="text-primary"
+        >
+          Tomba diambu
+        </Text>
+        <Text fontSize="sm" color="text-muted">
+          Search the Kikongo Language Cluster
+        </Text>
+      </VStack>
+
+      <VStack spacing={4} w="full" align="center">
         {/* Language Filter Dropdown */}
         <ChakraSelect
           placeholder="Sâla Mbembu"
@@ -116,6 +121,8 @@ const HomePage = () => {
           value={selectedLanguage}
           maxW="sm"
           w="full"
+          bg="bg-surface"
+          borderColor="border-default"
         >
           {languages.map((language) => (
             <option key={language.code} value={language.code}>
@@ -127,30 +134,31 @@ const HomePage = () => {
         {/* Search Bar */}
         <SearchBar onSearch={handleSearch} />
 
-        <Text fontSize={{ base: "12", sm: "14" }}
-          fontWeight={"bold"}
-          textAlign={"center"}
-        >
-          {(searchResults.directMatches.length > 0 || searchResults.exampleMatches.length > 0)
-            ? `${entriesCount} result(s) found`
-            : entriesCount > 0
-              ? `Total entries: ${entriesCount}`
-              : ""}
-        </Text>
+        {entriesCount > 0 && (
+          <Badge
+            colorScheme={hasResults ? "blue" : "gray"}
+            variant="subtle"
+            px={3}
+            py={1}
+            borderRadius="full"
+            fontSize="xs"
+          >
+            {hasResults ? `${entriesCount} result${entriesCount === 1 ? "" : "s"} found` : `${entriesCount} total entries`}
+          </Badge>
+        )}
 
         {/* Search Results */}
-        <SearchResult
-          directMatches={searchResults.directMatches}
-          exampleMatches={searchResults.exampleMatches}
-          query={searchResults.query}
-          allWords={words}
-          onSelect={handleSelect}
-        />
-
-      
+        <Box w="full" display="flex" justifyContent="center">
+          <SearchResult
+            directMatches={searchResults.directMatches}
+            exampleMatches={searchResults.exampleMatches}
+            query={searchResults.query}
+            allWords={words}
+            onSelect={handleSelect}
+          />
+        </Box>
       </VStack>
-      
-    </>
+    </VStack>
   );
 };
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { SERVER_API_URL } from '../api/config/serverUrl';
+import axiosApi from '../features/auth/interceptor';
 
 export const useLanguageStore = create((set) => ({
     languages: [],
@@ -9,15 +9,8 @@ export const useLanguageStore = create((set) => ({
             if (!language.name || !language.code) {
                 return { success: false, message: "Please fill all required fields" };
             }
-            const response = await fetch(`${SERVER_API_URL}/api/languages`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(language)
-            })
-            const data = await response.json()
-            set((state) => ({ languages: [...state.languages, data.data] }))
+            const response = await axiosApi.post('/api/languages', language);
+            set((state) => ({ languages: [...state.languages, response.data.data] }))
             return { success: true, message: 'Language added successfully' };
 
         } catch (error) {
@@ -33,8 +26,7 @@ export const useLanguageStore = create((set) => ({
 
             localStorage.setItem('newLanguages', JSON.stringify(offlineNewLanguages));
 
-            console.log(`connection to database lost, impossible to add a new language:\n ${error.message}`);
-            return ({ success: false, message: `connection to database lost, impossible to add a new language:\n ${error.message}` });
+            return ({ success: false, message: `Connection to database lost, impossible to add a new language:\n ${error.message}` });
 
         }
 
@@ -44,64 +36,43 @@ export const useLanguageStore = create((set) => ({
         try {
             if (offlineNewLanguages.length === 0) return;
             for (const language of offlineNewLanguages) {
-                const response = await fetch("/api/languages", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(language)
-                })
-                const data = await response.json()
-                set((state) => ({ languages: [...state.languages, data.data] }))
+                const response = await axiosApi.post('/api/languages', language);
+                set((state) => ({ languages: [...state.languages, response.data.data] }))
             }
             localStorage.setItem('newLanguages', JSON.stringify([]));
             return { success: true, message: 'Offline languages added successfully' };
         } catch (error) {
-            console.log(`connection to database lost, impossible to add a new language:\n ${error.message}`);
-            return { success: false, message: `connection to database lost, impossible to add a new language:\n ${error.message}` };
+            return { success: false, message: `Connection to database lost, impossible to add a new language:\n ${error.message}` };
         }
     },
     fetchLanguages: async () => {
         try {
-            const response = await fetch(`${SERVER_API_URL}/api/languages`)
-            const data = await response.json()
-            const sortedLanguages = data.data.sort((a, b) => a.name.localeCompare(b.name))
+            const response = await axiosApi.get('/api/languages');
+            const sortedLanguages = response.data.data.sort((a, b) => a.name.localeCompare(b.name))
             set({ languages: sortedLanguages })
-            
+
         } catch (error) {
-            console.log(`connection to database lost, impossible to fetch languages:\n ${error.message}`);
+            console.error(`Failed to fetch languages: ${error.message}`);
         }
     },
     updateLanguage: async (language) => {
         try {
-            const response = await fetch(`${SERVER_API_URL}/api/languages/${language._id}`, {
-                method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(language)
-            })
-            const data = await response.json()
+            const response = await axiosApi.put(`/api/languages/${language._id}`, language);
             set((state) => ({
-                languages: state.languages.map((l) => l._id === language._id ? data.data : l)
+                languages: state.languages.map((l) => l._id === language._id ? response.data.data : l)
             }))
             return { success: true, message: 'Language updated successfully' };
         } catch (error) {
-            console.log(`connection to database lost, impossible to update language:\n ${error.message}`);
-            return { success: false, message: `connection to database lost, impossible to update language:\n ${error.message}` };
+            return { success: false, message: `Connection to database lost, impossible to update language:\n ${error.message}` };
         }
     },
     fetchLanguageById: async (id) => {
         try {
-            console.log(id);
-            const response = await fetch(`${SERVER_API_URL}/api/languages`)
-            const data = await response.json()
-            const language = data.data.find((l) => l._id === id)
-            console.log(language);
+            const response = await axiosApi.get('/api/languages');
+            const language = response.data.data.find((l) => l._id === id)
             return { success: true, data: language }
-           
+
         } catch (error) {
-            console.log(`Impossible to fetch language:\n ${error.message}`);
             return { success: false, message: `Impossible to fetch language:\n ${error.message}` };
         }
     },

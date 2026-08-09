@@ -1,5 +1,5 @@
-import { Container, Flex,Text, HStack, Button, useColorMode} from '@chakra-ui/react'
-import React, { use } from 'react'
+import { Container, Flex, Text, HStack, Button, IconButton, Tooltip, useColorMode } from '@chakra-ui/react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { CiSquarePlus } from "react-icons/ci";
 import { IoMoon } from "react-icons/io5";
@@ -10,78 +10,105 @@ import { IoMdLogIn } from "react-icons/io";
 import { MdUploadFile } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
 import { useAuthStore } from '../store/authStore';
+import DikengaMark from './DikengaMark';
 
+const NavIconButton = ({ label, colorScheme = "gray", ...rest }) => (
+  <Tooltip label={label} hasArrow openDelay={300}>
+    <IconButton
+      aria-label={label}
+      variant="ghost"
+      colorScheme={colorScheme}
+      fontSize="18px"
+      {...rest}
+    />
+  </Tooltip>
+);
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const roles = useAuthStore((state) => state.roles);
   const isSuperAdmin = roles.includes('Admin') || roles.includes('superadmin');
-  
+
   return (
-    <Container maxW="1140px" px={4} >
+    <Flex
+      as="header"
+      position="sticky"
+      top={0}
+      zIndex={10}
+      bg="bg-surface"
+      borderBottom="1px solid"
+      borderColor="border-default"
+      backdropFilter="blur(8px)"
+    >
+      <Container maxW="1140px" px={4}>
         <Flex
-        minH={16}
-        h={{ base: "auto", sm: 16 }}
-        py={{ base: 2, sm: 0 }}
-        alignItems={"center"}
-        justifyContent={"space-between"}
-        flexDir={{
-            base: "column",
-            sm: "row"
-        }}
-        gap={{ base: 2, sm: 0 }}
+          minH={16}
+          h={{ base: "auto", sm: 16 }}
+          py={{ base: 3, sm: 0 }}
+          alignItems={"center"}
+          justifyContent={"space-between"}
+          flexDir={{ base: "column", sm: "row" }}
+          gap={{ base: 3, sm: 0 }}
         >
-           		<Text
-					fontSize={{ base: "22", sm: "28" }}
-					fontWeight={"bold"}
-					textTransform={"uppercase"}
-					textAlign={"center"}
-					bgGradient={"linear(to-r, cyan.400, blue.500)"}
-					bgClip={"text"}
-				>
-					<Link to={"/"}> Longukanu si Mbembu situ</Link>
-				</Text>
-                <HStack spacing={2}>
-                    <Link to={"/add"}>
-                        <Button>
-                           <CiSquarePlus fontSize={20} />
-                        </Button>
-                    </Link>
-                    {isSuperAdmin && (
-                        <Link to={"/bulk-import"}>
-                            <Button colorScheme="purple" title="Bulk Import Words">
-                                <MdUploadFile fontSize={20} />
-                            </Button>
-                        </Link>
-                    )}
-                    {isAuthenticated && (
-                        <Link to={"/statistics"}>
-                            <Button colorScheme="teal" title="Dictionary Statistics">
-                                <IoStatsChart fontSize={20} />
-                            </Button>
-                        </Link>
-                    )}
-                    <Button onClick={toggleColorMode}>
-                        {colorMode === "light" ? <LuSun fontSize={20} /> : <IoMoon fontSize={20} />}
-                    </Button>
-                    <Link to={"/languages"}>
-                        <Button>
-                            <DiAptana fontSize={20} />
-                        </Button>
-                    </Link>
-                    <Link to={"/logout"}>
-                        <Button>
-                            {isAuthenticated ? <IoMdLogOut fontSize={20} /> : <IoMdLogin fontSize={20} />}
-                           
-                        </Button>
-                    </Link>
-                   
-                </HStack>
-           
+          <Link to={"/"}>
+            <HStack spacing={2.5}>
+              <DikengaMark boxSize="26px" color="blue.400" />
+              <Flex direction="column" lineHeight="1.1">
+                <Text
+                  as="span"
+                  fontFamily="heading"
+                  fontSize={{ base: "19", sm: "21" }}
+                  fontWeight="600"
+                  color="text-primary"
+                >
+                  Longukanu
+                </Text>
+                <Text
+                  as="span"
+                  fontSize="10"
+                  letterSpacing="0.14em"
+                  textTransform="uppercase"
+                  color="text-muted"
+                >
+                  si Mbembu situ
+                </Text>
+              </Flex>
+            </HStack>
+          </Link>
+
+          <HStack spacing={1}>
+            <Link to={"/add"}>
+              <NavIconButton label="Add a word" colorScheme="blue" icon={<CiSquarePlus />} />
+            </Link>
+            {isSuperAdmin && (
+              <Link to={"/bulk-import"}>
+                <NavIconButton label="Bulk import words" colorScheme="teal" icon={<MdUploadFile />} />
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link to={"/statistics"}>
+                <NavIconButton label="Dictionary statistics" colorScheme="indigo" icon={<IoStatsChart />} />
+              </Link>
+            )}
+            <NavIconButton
+              label={colorMode === "light" ? "Switch to dark mode" : "Switch to light mode"}
+              onClick={toggleColorMode}
+              icon={colorMode === "light" ? <LuSun /> : <IoMoon />}
+            />
+            <Link to={"/languages"}>
+              <NavIconButton label="Manage languages" icon={<DiAptana />} />
+            </Link>
+            <Link to={"/logout"}>
+              <NavIconButton
+                label={isAuthenticated ? "Log out" : "Log in"}
+                icon={isAuthenticated ? <IoMdLogOut /> : <IoMdLogIn />}
+              />
+            </Link>
+          </HStack>
         </Flex>
-        
-    </Container>
+      </Container>
+    </Flex>
   )
 }
 

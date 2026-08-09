@@ -34,21 +34,9 @@ function AddRelationshipModal({ isOpen, onClose, currentWord }) {
   // Fetch words when modal opens
   useEffect(() => {
     if (isOpen && words.length === 0) {
-      console.log('Modal opened, fetching words...');
       fetchWords();
     }
   }, [isOpen, fetchWords, words.length]);
-
-  // Debug: Log words and filtered results
-  useEffect(() => {
-    console.log('Total words in store:', words.length);
-    console.log('Search term:', searchTerm);
-    console.log('Current word:', currentWord?.word);
-    console.log('Filtered words count:', filteredWords.length);
-    if (filteredWords.length > 0) {
-      console.log('Sample filtered words:', filteredWords.slice(0, 5).map(w => w.word));
-    }
-  }, [words.length, searchTerm, currentWord]);
 
   // Filter words based on search term
   const filteredWords = words

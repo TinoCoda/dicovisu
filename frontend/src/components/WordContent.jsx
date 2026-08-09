@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, VStack, HStack, Link, Badge, Box, useColorModeValue, Icon } from '@chakra-ui/react';
+import { Text, VStack, HStack, Link, Badge, Box, Icon } from '@chakra-ui/react';
 import { FaPlay, FaVolumeUp } from 'react-icons/fa';
 
 function WordContent({ selectedWord, onWordClick }) {
@@ -63,19 +63,16 @@ function WordContent({ selectedWord, onWordClick }) {
     infinitive: 'teal'
   };
 
-  const bgColor = useColorModeValue('gray.50', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-
   return (
     <VStack spacing={4} align="start" w="100%">
-      <Text fontStyle="italic" align="left">
+      <Text fontStyle="italic" align="left" color="text-muted" fontSize="sm">
         Language(s): {selectedWord.language.join(', ')}
       </Text>
-      <Text fontWeight="bold" fontSize="md">
+      <Text fontWeight="600" fontSize="lg" color="text-primary">
         {selectedWord.meaning}
       </Text>
       {selectedWord.translations && selectedWord.translations.length > 0 && (
-        <Text fontStyle="italic" color="gray.600">
+        <Text fontStyle="italic" color="text-muted">
           Translations: {selectedWord.translations.join(', ')}
         </Text>
       )}
@@ -86,15 +83,16 @@ function WordContent({ selectedWord, onWordClick }) {
           w="100%"
           mt={2}
           p={{ base: 3, md: 4 }}
-          bg={bgColor}
+          bg="bg-surface-raised"
           borderRadius="lg"
-          borderWidth="2px"
-          borderColor="teal.300"
+          borderWidth="1px"
+          borderColor="teal.400"
+          borderLeftWidth="4px"
         >
           <VStack spacing={2} align="stretch">
             <HStack spacing={2}>
-              <Icon as={FaVolumeUp} color="teal.500" boxSize={{ base: 4, md: 5 }} />
-              <Text fontWeight="bold" fontSize={{ base: 'xs', md: 'sm' }} color="gray.600">
+              <Icon as={FaVolumeUp} color="teal.400" boxSize={{ base: 4, md: 5 }} />
+              <Text fontWeight="bold" fontSize={{ base: 'xs', md: 'sm' }} color="text-muted" textTransform="uppercase" letterSpacing="wide">
                 Pronunciation
               </Text>
             </HStack>
@@ -115,9 +113,9 @@ function WordContent({ selectedWord, onWordClick }) {
 
       {/* Related Words Section */}
       {selectedWord.relatedWords && selectedWord.relatedWords.length > 0 && (
-        <Box w="100%" mt={2} p={4} bg={bgColor} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
-          <Text fontWeight="bold" mb={3} fontSize="sm" color="gray.600">
-            Related Words:
+        <Box w="100%" mt={2} p={4} bg="bg-surface-raised" borderRadius="md" borderWidth="1px" borderColor="border-default">
+          <Text fontWeight="bold" mb={3} fontSize="sm" color="text-muted" textTransform="uppercase" letterSpacing="wide">
+            Related Words
           </Text>
           <VStack align="start" spacing={2}>
             {selectedWord.relatedWords.map((related, index) => (
@@ -126,7 +124,7 @@ function WordContent({ selectedWord, onWordClick }) {
                   {relationshipLabels[related.relationshipType] || related.relationshipType}
                 </Badge>
                 <Link
-                  color="teal.500"
+                  color="blue.400"
                   fontWeight="bold"
                   onClick={() => onWordClick && onWordClick(related.wordId)}
                   cursor="pointer"
@@ -140,21 +138,21 @@ function WordContent({ selectedWord, onWordClick }) {
         </Box>
       )}
 
-      <Text>
+      <Text color="text-primary">
         {selectedWord.description !== '' ? selectedWord.description : 'ajoute une description...'}
       </Text>
       <VStack spacing={4} align="start" mt={4} mb={4} w="100%">
         {translations.length > 0 ? (
           translations.map((pair, index) => (
             <React.Fragment key={index}>
-              <Text fontStyle="italic" fontWeight="bold">
+              <Text fontStyle="italic" fontWeight="bold" color="text-primary">
                 {pair.originalText}
               </Text>
-              <Text>{pair.translation}</Text>
+              <Text color="text-muted">{pair.translation}</Text>
             </React.Fragment>
           ))
         ) : (
-          <Text>Aucun exemple n'a été fourni.</Text>
+          <Text color="text-muted">Aucun exemple n'a été fourni.</Text>
         )}
       </VStack>
     </VStack>

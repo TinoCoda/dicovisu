@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
-import { Box, Button, Input, Text, Flex, useColorModeValue } from "@chakra-ui/react";
+import { Box, Button, Input, Text, Flex, VStack } from "@chakra-ui/react";
 import { useAuthStore } from "../store/authStore";
 import SignUp from "./SignUp"; // Import the SignUp component
+import DikengaMark from "./DikengaMark";
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState(''); // State for username
@@ -13,14 +14,7 @@ const Login = ({ onLogin }) => {
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
     try {
-      const response = await login(username, password); // Call the login function from the auth store
-      const restrictedResponse= {
-        username: response.data.username, 
-        roles: response.data.roles, 
-        message: response.data.message 
-
-      };
-      console.log("Login response:",restrictedResponse); // Log the response for debugging
+      await login(username, password); // Call the login function from the auth store
       setUsername(''); // Clear username input field
       setPassword(''); // Clear password input field
     } catch (err) {
@@ -29,29 +23,31 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  // Define color mode values
-  const bgColor = useColorModeValue("gray.100", "gray.800");
-  const cardBgColor = useColorModeValue("white", "gray.700");
-
   return showSignUp ? (
     <SignUp onSignUpSuccess={() => setShowSignUp(false)} /> // Show SignUp component
   ) : (
-    <Flex minH="100vh" align="center" justify="center" bg={bgColor}>
+    <Flex className="canvas-texture" minH="100vh" align="center" justify="center" bg="bg-canvas" px={4}>
       <Box
         maxW="400px"
         w="full"
-        p="6"
+        p="8"
         borderWidth="1px"
+        borderColor="border-default"
         borderRadius="lg"
         boxShadow="lg"
-        bg={cardBgColor}
-        maxH={"90vh"}
+        bg="bg-surface"
       >
-        <Text fontSize="2xl" fontWeight="bold" mb="4" textAlign="center">
-          Login
-        </Text>
+        <VStack spacing={1} mb="6">
+          <DikengaMark boxSize="34px" color="blue.400" />
+          <Text fontFamily="heading" fontSize="2xl" fontWeight="600" textAlign="center" color="text-primary">
+            Longukanu
+          </Text>
+          <Text fontSize="xs" letterSpacing="0.14em" textTransform="uppercase" color="text-muted">
+            si Mbembu situ
+          </Text>
+        </VStack>
         {error && (
-          <Text color="red.500" fontSize="sm" mb="4" textAlign="center">
+          <Text color="red.400" fontSize="sm" mb="4" textAlign="center">
             {error}
           </Text>
         )}
@@ -61,6 +57,7 @@ const Login = ({ onLogin }) => {
           value={username}
           onChange={(e) => setUsername(e.target.value)} // Update the username state
           mb="4"
+          bg="bg-canvas"
         />
         <Input
           placeholder="Password"
@@ -68,6 +65,7 @@ const Login = ({ onLogin }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)} // Update the password state
           mb="4"
+          bg="bg-canvas"
         />
         <Button colorScheme="blue" w="full" onClick={handleLogin} mb="4">
           Login
